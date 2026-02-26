@@ -415,7 +415,15 @@ function showDayPosts(dateStr) {
 
 async function showPostDetail(postId) {
     try {
-        const response = await fetch(`${API_BASE}/get-post?id=${postId}`);
+        const response = await fetchWithAuth(`${API_BASE}/get-post?id=${postId}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error loading post:', errorData);
+            alert('Error al cargar el post: ' + (errorData.error || 'Error desconocido'));
+            return;
+        }
+        
         const post = await response.json();
         selectedPost = post;
         
@@ -532,7 +540,7 @@ async function savePost() {
     };
     
     try {
-        await fetch(`${API_BASE}/update-post?id=${selectedPost.id}`, {
+        await fetchWithAuth(`${API_BASE}/update-post?id=${selectedPost.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedPost)
@@ -553,7 +561,7 @@ async function deletePost() {
     if (!confirm(`¿Eliminar "${selectedPost.title}"?`)) return;
     
     try {
-        await fetch(`${API_BASE}/delete-post?id=${selectedPost.id}`, {
+        await fetchWithAuth(`${API_BASE}/delete-post?id=${selectedPost.id}`, {
             method: 'DELETE'
         });
         
@@ -633,7 +641,7 @@ async function syncCalendar() {
     btn.style.opacity = '0.5';
     
     try {
-        await fetch(`${API_BASE}/sync-calendar`, { method: 'POST' });
+        await fetchWithAuth(`${API_BASE}/sync-calendar`, { method: 'POST' });
         await loadCalendar();
         addActivityLogItem('🔄 Calendario sincronizado con Google Sheets');
     } catch (error) {
