@@ -297,6 +297,26 @@ function renderCalendarList() {
     const month = currentDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
+    const typeIcons = {
+        feed: '📱',
+        story: '📲',
+        reel: '🎬',
+        carousel: '🎠'
+    };
+    
+    const typeLabels = {
+        feed: 'Feed',
+        story: 'Historia',
+        reel: 'Reel',
+        carousel: 'Carrusel'
+    };
+    
+    const platformLabels = {
+        both: 'FB + IG',
+        facebook: 'Facebook',
+        instagram: 'Instagram'
+    };
+    
     let listHTML = '';
     
     for (let day = 1; day <= daysInMonth; day++) {
@@ -311,8 +331,8 @@ function renderCalendarList() {
         const postsHTML = dayPosts.map(post => `
             <div class="post-item ${post.type}" onclick="showPostDetail('${post.id}')">
                 <div class="post-content">
-                    <div class="post-title">${post.title}</div>
-                    <div class="post-meta">${post.time} • ${post.platform}</div>
+                    <div class="post-title">${typeIcons[post.type] || ''} ${post.title}</div>
+                    <div class="post-meta">${post.time} ${typeLabels[post.type]} • ${platformLabels[post.platform] || post.platform}</div>
                 </div>
                 <div class="post-status-badge ${post.status}">${post.status}</div>
             </div>
@@ -359,11 +379,31 @@ function showDayPosts(dateStr) {
         day: 'numeric' 
     });
     
+    const typeIcons = {
+        feed: '📱',
+        story: '📲',
+        reel: '🎬',
+        carousel: '🎠'
+    };
+    
+    const typeLabels = {
+        feed: 'Feed',
+        story: 'Historia',
+        reel: 'Reel',
+        carousel: 'Carrusel'
+    };
+    
+    const platformLabels = {
+        both: 'FB + IG',
+        facebook: 'Facebook',
+        instagram: 'Instagram'
+    };
+    
     const postsHTML = dayPosts.map(post => `
         <div class="post-item ${post.type}" onclick="showPostDetail('${post.id}')">
             <div class="post-content">
-                <div class="post-title">${post.title}</div>
-                <div class="post-meta">${post.time} • ${post.platform}</div>
+                <div class="post-title">${typeIcons[post.type] || ''} ${post.title}</div>
+                <div class="post-meta">${post.time} ${typeLabels[post.type]} • ${platformLabels[post.platform] || post.platform}</div>
             </div>
             <div class="post-status-badge ${post.status}">${post.status}</div>
         </div>

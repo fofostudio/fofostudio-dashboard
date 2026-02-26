@@ -56,9 +56,40 @@ async function readSheetsData(accessToken, spreadsheetId, year, month, monthStr)
   const posts = [];
 
   try {
-    const sheetNames = ['Calendario Marzo 2026', 'Calendario Stories IG'];
+    // Map of sheet patterns to post types
+    const sheetConfigs = [
+      { pattern: /feed|posts|publicaciones/i, defaultType: 'feed' },
+      { pattern: /stories|historias/i, defaultType: 'story' }
+    ];
 
-    for (const sheetName of sheetNames) {
+    // First, get all sheet names
+    const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets(properties(title))`;
+    const metaResponse = await fetch(metaUrl, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+
+    if (metaResponse.status !== 200) {
+      console.error('Failed to get sheet names');
+      return posts;
+    }
+
+    const metaData = await metaResponse.json();
+    const sheets = metaData.sheets || [];
+
+    // Process each sheet
+    for (const sheet of sheets) {
+      const sheetName = sheet.properties.title;
+      
+      // Determine default type based on sheet name
+      let defaultType = 'feed';
+      for (const config of sheetConfigs) {
+        if (config.pattern.test(sheetName)) {
+          defaultType = config.defaultType;
+          break;
+        }
+      }
+
+      // Read data from this sheet
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:Z`;
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -71,26 +102,59 @@ async function readSheetsData(accessToken, spreadsheetId, year, month, monthStr)
 
       if (rows.length < 2) continue;
 
+      // Parse header to find column indices
+      const header = rows[0].map(h => (h || '').toLowerCase());
+      const colIndices = {
+        date: findColumnIndex(header, ['fecha', 'date', 'día', 'dia']),
+        time: findColumnIndex(header, ['hora', 'time', 'horario']),
+        title: findColumnIndex(header, ['título', 'titulo', 'title', 'texto', 'copy']),
+        description: findColumnIndex(header, ['descripción', 'descripcion', 'description', 'caption']),
+        type: findColumnIndex(header, ['tipo', 'type', 'formato', 'format']),
+        platform: findColumnIndex(header, ['plataforma', 'platform', 'red']),
+        image: findColumnIndex(header, ['imagen', 'image', 'url', 'asset', 'pieza'])
+      };
+
       // Skip header row
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        if (row.length < 3) continue;
+        if (row.length === 0) continue;
 
-        const dateStr = row[0] || '';
+        const dateStr = colIndices.date >= 0 ? (row[colIndices.date] || '') : '';
+        if (!dateStr) continue;
+        
+        // Only include posts from the requested month
         if (!dateStr.startsWith(monthStr)) continue;
+
+        // Determine post type
+        let postType = defaultType;
+        if (colIndices.type >= 0 && row[colIndices.type]) {
+          const typeValue = row[colIndices.type].toLowerCase();
+          if (typeValue.includes('reel')) postType = 'reel';
+          else if (typeValue.includes('carrusel') || typeValue.includes('carousel')) postType = 'carousel';
+          else if (typeValue.includes('story') || typeValue.includes('historia')) postType = 'story';
+          else if (typeValue.includes('feed') || typeValue.includes('post')) postType = 'feed';
+        }
+
+        const time = colIndices.time >= 0 ? (row[colIndices.time] || '') : '';
+        const title = colIndices.title >= 0 ? (row[colIndices.title] || '') : '';
+        const description = colIndices.description >= 0 ? (row[colIndices.description] || '') : '';
+        const platform = colIndices.platform >= 0 ? (row[colIndices.platform] || 'both') : 'both';
+        const imageUrl = colIndices.image >= 0 ? (row[colIndices.image] || '') : '';
+
+        if (!title && !description) continue; // Skip empty rows
 
         posts.push({
           id: `${sheetName}_${i + 1}`,
           sheet_name: sheetName,
           row_index: i + 1,
           date: dateStr,
-          time: row[1] || '',
-          title: row[2] || '',
-          description: row[3] || '',
-          type: sheetName.includes('Stories') ? 'story' : 'feed',
-          platform: row[4] || 'both',
-          image_url: row[5] || '',
-          status: determineStatus(dateStr, row[1] || '')
+          time: time,
+          title: title,
+          description: description,
+          type: postType,
+          platform: platform.toLowerCase(),
+          image_url: imageUrl,
+          status: determineStatus(dateStr, time)
         });
       }
     }
@@ -99,6 +163,17 @@ async function readSheetsData(accessToken, spreadsheetId, year, month, monthStr)
   }
 
   return posts;
+}
+
+function findColumnIndex(header, possibleNames) {
+  for (let i = 0; i < header.length; i++) {
+    for (const name of possibleNames) {
+      if (header[i].includes(name)) {
+        return i;
+      }
+    }
+  }
+  return -1;
 }
 
 function determineStatus(dateStr, timeStr) {
@@ -124,8 +199,8 @@ function getMockPosts(year, month, monthStr) {
   return [
     {
       id: 'feed_1',
-      sheet_name: 'Calendario Marzo 2026',
-      row_index: 2,
+      sheet_name: 'Mock Data',
+      row_index: 1,
       date: `${monthStr}-05`,
       time: '12:00',
       title: 'Post educativo: Tips de diseño',
@@ -137,7 +212,7 @@ function getMockPosts(year, month, monthStr) {
     },
     {
       id: 'story_1',
-      sheet_name: 'Calendario Stories IG',
+      sheet_name: 'Mock Data',
       row_index: 2,
       date: `${monthStr}-05`,
       time: '18:00',
@@ -149,14 +224,27 @@ function getMockPosts(year, month, monthStr) {
       status: 'scheduled'
     },
     {
-      id: 'feed_2',
-      sheet_name: 'Calendario Marzo 2026',
+      id: 'reel_1',
+      sheet_name: 'Mock Data',
       row_index: 3,
       date: `${monthStr}-10`,
       time: '15:00',
-      title: 'Caso de éxito: Cliente TechCorp',
-      description: 'Resultados de +150% engagement',
-      type: 'feed',
+      title: 'Reel: Tutorial rápido',
+      description: 'Cómo usar Figma en 30 segundos',
+      type: 'reel',
+      platform: 'instagram',
+      image_url: '',
+      status: 'scheduled'
+    },
+    {
+      id: 'carousel_1',
+      sheet_name: 'Mock Data',
+      row_index: 4,
+      date: `${monthStr}-15`,
+      time: '14:00',
+      title: 'Carrusel: Tendencias 2026',
+      description: '5 tendencias de diseño que debes conocer',
+      type: 'carousel',
       platform: 'both',
       image_url: '',
       status: 'scheduled'
