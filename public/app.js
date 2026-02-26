@@ -1,9 +1,5 @@
-// === CONFIG ===
-const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5555/api'
-    : '/.netlify/functions';
-
 // === STATE ===
+// API_BASE is defined in auth.js (loaded first)
 let currentDate = new Date();
 let currentView = 'grid';
 let calendarData = [];
