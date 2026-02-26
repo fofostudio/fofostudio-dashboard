@@ -1286,12 +1286,21 @@ body::before {
     overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .asset-card:hover {
     transform: translateY(-4px);
     border-color: var(--accent-orange);
     box-shadow: 0 8px 24px rgba(255, 117, 25, 0.2);
+}
+
+.asset-card.used {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.asset-card.used:hover {
+    border-color: var(--success);
 }
 
 .asset-thumbnail {
@@ -1318,6 +1327,110 @@ body::before {
 .asset-meta {
     font-size: 0.75rem;
     color: var(--text-dim);
+}
+
+.asset-status {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.asset-status.in-calendar {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(74, 222, 128, 0.8));
+    color: #fff;
+}
+
+.asset-status.available {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(96, 165, 250, 0.8));
+    color: #fff;
+}
+
+.asset-aspect-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.asset-recommended-type {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.asset-recommended-type.feed {
+    background: rgba(255, 117, 25, 0.2);
+    color: var(--accent-orange);
+    border: 1px solid var(--accent-orange);
+}
+
+.asset-recommended-type.story {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+    border: 1px solid #a855f7;
+}
+
+.asset-recommended-type.reel {
+    background: rgba(244, 63, 94, 0.2);
+    color: #f43f5e;
+    border: 1px solid #f43f5e;
+}
+
+.asset-recommended-type.carousel {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+}
+
+.asset-create-btn {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-dim));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    z-index: 20;
+}
+
+.asset-card:hover .asset-create-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.asset-create-btn:hover {
+    background: linear-gradient(135deg, var(--accent-orange-dim), var(--accent-orange));
 }
 
 /* === RESPONSIVE === */

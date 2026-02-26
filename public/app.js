@@ -750,29 +750,245 @@ function renderAssets(assets) {
     const container = document.getElementById('assets-grid');
     
     if (assets.length === 0) {
-        container.innerHTML = '<div class="activity-item">No hay assets disponibles</div>';
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📂</div>
+                <div>No hay assets en esta carpeta</div>
+            </div>
+        `;
         return;
     }
     
-    const html = assets.map(asset => `
-        <div class="asset-card" onclick="showAssetDetail('${asset.id}')">
-            <img src="${asset.thumbnail || asset.url}" 
-                 alt="${asset.name}" 
-                 class="asset-thumbnail"
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23666%22%3E📄%3C/text%3E%3C/svg%3E'">
-            <div class="asset-info">
-                <div class="asset-name">${asset.name}</div>
-                <div class="asset-meta">${asset.type} • ${asset.size || 'N/A'}</div>
+    const html = assets.map(asset => {
+        const statusBadge = asset.usedInCalendar 
+            ? `<div class="asset-status in-calendar" title="Usado en: ${asset.postTitle}">✓ En Calendario</div>`
+            : `<div class="asset-status available">Disponible</div>`;
+        
+        const aspectBadge = asset.aspectRatio 
+            ? `<div class="asset-aspect-badge">${asset.aspectRatio}</div>`
+            : '';
+        
+        const recommendedType = asset.recommendedType
+            ? `<div class="asset-recommended-type ${asset.recommendedType}">${getTypeLabel(asset.recommendedType)}</div>`
+            : '';
+        
+        const dimensions = asset.width && asset.height
+            ? `${asset.width}×${asset.height}`
+            : '';
+        
+        const createButton = !asset.usedInCalendar
+            ? `<button class="asset-create-btn" onclick="event.stopPropagation(); openCreatePostModal('${asset.id}', '${escapeHtml(asset.name)}', '${asset.url}', '${asset.recommendedType || 'feed'}', '${asset.aspectRatio || ''}')">
+                + Crear Publicación
+               </button>`
+            : '';
+        
+        return `
+            <div class="asset-card ${asset.usedInCalendar ? 'used' : 'available'}" 
+                 onclick="showAssetDetail('${asset.id}', ${JSON.stringify(asset).replace(/"/g, '&quot;')})">
+                ${statusBadge}
+                ${aspectBadge}
+                <img src="${asset.thumbnail || asset.url}" 
+                     alt="${asset.name}" 
+                     class="asset-thumbnail"
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23666%22%3E📄%3C/text%3E%3C/svg%3E'">
+                <div class="asset-info">
+                    <div class="asset-name" title="${asset.name}">${asset.name}</div>
+                    <div class="asset-meta">
+                        ${asset.type} • ${asset.size || 'N/A'}
+                        ${dimensions ? ` • ${dimensions}` : ''}
+                    </div>
+                    ${recommendedType}
+                </div>
+                ${createButton}
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
     
     container.innerHTML = html;
 }
 
-function showAssetDetail(assetId) {
-    // TODO: Implement asset detail view
-    alert('Asset detail view coming soon!');
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showAssetDetail(assetId, assetData) {
+    const asset = typeof assetData === 'string' ? JSON.parse(assetData) : assetData;
+    
+    const detailHTML = `
+        <div style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">${asset.name}</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div><strong>Tipo:</strong> ${asset.type}</div>
+                <div><strong>Tamaño:</strong> ${asset.size}</div>
+                <div><strong>Dimensiones:</strong> ${asset.width}×${asset.height || 'N/A'}</div>
+                <div><strong>Aspect Ratio:</strong> ${asset.aspectRatio || 'N/A'}</div>
+                <div><strong>Recomendado:</strong> ${asset.recommendedType ? getTypeLabel(asset.recommendedType) : 'N/A'}</div>
+                <div><strong>Estado:</strong> ${asset.usedInCalendar ? '✓ En Calendario' : 'Disponible'}</div>
+            </div>
+            <div style="text-align: center; margin: 2rem 0;">
+                <img src="${asset.url}" style="max-width: 100%; max-height: 400px; border-radius: 12px;" alt="${asset.name}">
+            </div>
+            ${asset.usedInCalendar ? `
+                <div style="padding: 1rem; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; margin-top: 1rem;">
+                    <strong>Usado en:</strong> ${asset.postTitle} (${asset.postDate})
+                </div>
+            ` : `
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" 
+                        onclick="openCreatePostModal('${asset.id}', '${escapeHtml(asset.name)}', '${asset.url}', '${asset.recommendedType || 'feed'}', '${asset.aspectRatio || ''}')">
+                    + Crear Publicación con este Asset
+                </button>
+            `}
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="closeModal()">
+                Cerrar
+            </button>
+        </div>
+    `;
+    
+    showModal('Detalle del Asset', detailHTML);
+}
+
+function openCreatePostModal(assetId, assetName, assetUrl, recommendedType, aspectRatio) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const modalHTML = `
+        <div style="padding: 2rem;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <img src="${assetUrl}" style="max-width: 100%; max-height: 200px; border-radius: 12px;" alt="${assetName}">
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">${assetName}</div>
+                ${aspectRatio ? `<div style="margin-top: 0.25rem; font-size: 0.75rem; color: var(--text-dim);">Ratio: ${aspectRatio}</div>` : ''}
+            </div>
+            
+            <form id="create-post-form" onsubmit="handleCreatePostSubmit(event, '${assetId}', '${assetUrl}', '${assetName}')">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Fecha *</label>
+                    <input type="date" id="post-date" value="${today}" required 
+                           style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Hora</label>
+                    <input type="time" id="post-time" value="12:00" 
+                           style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tipo de Publicación *</label>
+                    <select id="post-type" required 
+                            style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+                        <option value="feed" ${recommendedType === 'feed' ? 'selected' : ''}>📱 Feed Post</option>
+                        <option value="story" ${recommendedType === 'story' ? 'selected' : ''}>📲 Historia</option>
+                        <option value="reel" ${recommendedType === 'reel' ? 'selected' : ''}>🎬 Reel</option>
+                        <option value="carousel" ${recommendedType === 'carousel' ? 'selected' : ''}>🎠 Carrusel</option>
+                    </select>
+                    ${recommendedType ? `<div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent-orange);">✨ Recomendado según aspect ratio</div>` : ''}
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Plataforma *</label>
+                    <select id="post-platform" required 
+                            style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary);">
+                        <option value="both">Facebook + Instagram</option>
+                        <option value="facebook">Solo Facebook</option>
+                        <option value="instagram">Solo Instagram</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Título / Mensaje *</label>
+                    <textarea id="post-title" required rows="3" placeholder="Escribe el mensaje principal..." 
+                              style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary); resize: vertical;"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Descripción / Copy adicional</label>
+                    <textarea id="post-description" rows="2" placeholder="Detalles adicionales (opcional)..." 
+                              style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary); resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        ✓ Crear Publicación
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    showModal('+ Crear Publicación', modalHTML);
+}
+
+async function handleCreatePostSubmit(event, assetId, assetUrl, assetName) {
+    event.preventDefault();
+    
+    const date = document.getElementById('post-date').value;
+    const time = document.getElementById('post-time').value;
+    const type = document.getElementById('post-type').value;
+    const platform = document.getElementById('post-platform').value;
+    const title = document.getElementById('post-title').value;
+    const description = document.getElementById('post-description').value;
+    
+    try {
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Creando...';
+        
+        const response = await fetchWithAuth(`${API_BASE}/create-post-from-asset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                assetId,
+                assetUrl,
+                assetName,
+                date,
+                time,
+                title,
+                description,
+                type,
+                platform
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al crear publicación');
+        }
+        
+        closeModal();
+        alert('✅ Publicación creada exitosamente!');
+        
+        // Reload calendar and boveda
+        await loadCalendar();
+        await loadBoveda();
+        addActivityLogItem(`📅 Nueva publicación: ${title.substring(0, 40)}...`);
+        
+    } catch (error) {
+        console.error('Error creating post:', error);
+        alert('❌ Error: ' + error.message);
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '✓ Crear Publicación';
+    }
+}
+
+function showModal(title, content) {
+    const modal = document.getElementById('post-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    modalTitle.textContent = title;
+    modalBody.innerHTML = content;
+    modal.classList.remove('hidden');
+}
+
+function closeModal() {
+    const modal = document.getElementById('post-modal');
+    modal.classList.add('hidden');
 }
 
 async function refreshBoveda() {
