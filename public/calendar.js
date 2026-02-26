@@ -1,5 +1,16 @@
 // === CALENDAR VIEWS ===
 
+// Convert 24h time to 12h with AM/PM
+function formatTime12h(time24) {
+    if (!time24) return '—';
+    
+    const [hours, minutes] = time24.split(':').map(Number);
+    const period = hours >= 12 ? 'pm' : 'am';
+    const hours12 = hours % 12 || 12;
+    
+    return `${hours12}:${String(minutes).padStart(2, '0')}<span style="font-size: 0.7em; opacity: 0.7; margin-left: 2px;">${period}</span>`;
+}
+
 function switchCalendarView(view) {
     currentCalendarView = view;
     
@@ -184,7 +195,7 @@ function renderDayView() {
     
     const postsHTML = dayPosts.map(post => `
         <div class="day-post-card" onclick="showPostDetail('${post.id}')">
-            <div class="day-post-time">${post.time || '—'}</div>
+            <div class="day-post-time">${formatTime12h(post.time)}</div>
             <div class="day-post-content">
                 ${post.image_url ? `
                     <div class="day-post-thumbnail">
@@ -233,7 +244,7 @@ function renderPostCard(post, currentDateStr) {
                  onclick="showPostDetail('${post.id}')"
                  style="background-image: url('${post.image_url}'); background-size: cover; background-position: center;">
                 <div class="post-card-story-overlay">
-                    <div class="post-card-time-story">${post.time || '—'}</div>
+                    <div class="post-card-time-story">${formatTime12h(post.time)}</div>
                 </div>
                 <div class="post-card-type-badge-bottom ${post.type}">
                     ${typeBadge.icon}
@@ -262,12 +273,12 @@ function renderPostCard(post, currentDateStr) {
                 </div>
             `}
             <div class="post-card-info">
-                <div class="post-card-time">${post.time || '—'}</div>
+                <div class="post-card-time">${formatTime12h(post.time)}</div>
                 <div class="post-card-title">${post.title.substring(0, 40)}${post.title.length > 40 ? '...' : ''}</div>
                 <div class="post-card-footer">
                     <div class="post-card-status ${post.status}"></div>
                     <div class="post-card-type-badge-bottom ${post.type}">
-                        ${typeBadge.icon}
+                        ${typeBadge.icon}${post.type === 'reel' ? '<span class="reel-text">REEL</span>' : ''}
                     </div>
                 </div>
             </div>

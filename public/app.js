@@ -7,6 +7,18 @@ let calendarData = [];
 let selectedPost = null;
 let recommendations = [];
 
+// === UTILITY FUNCTIONS ===
+// Convert 24h time to 12h with AM/PM
+function formatTime12h(time24) {
+    if (!time24) return '—';
+    
+    const [hours, minutes] = time24.split(':').map(Number);
+    const period = hours >= 12 ? 'pm' : 'am';
+    const hours12 = hours % 12 || 12;
+    
+    return `${hours12}:${String(minutes).padStart(2, '0')}<span style="font-size: 0.7em; opacity: 0.7; margin-left: 2px;">${period}</span>`;
+}
+
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     initAuth();
@@ -274,7 +286,7 @@ function showDayPosts(dateStr) {
         <div class="post-item ${post.type}" onclick="showPostDetail('${post.id}')">
             <div class="post-content">
                 <div class="post-title">${typeIcons[post.type] || ''} ${post.title}</div>
-                <div class="post-meta">${post.time} ${typeLabels[post.type]} • ${platformLabels[post.platform] || post.platform}</div>
+                <div class="post-meta">${formatTime12h(post.time)} ${typeLabels[post.type]} • ${platformLabels[post.platform] || post.platform}</div>
             </div>
             <div class="post-status-badge ${post.status}">${post.status}</div>
         </div>
@@ -339,7 +351,7 @@ async function showPostDetail(postId) {
                 
                 <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;">
                     <strong>Plataforma:</strong> ${post.platform}<br>
-                    <strong>Fecha:</strong> ${post.date} ${post.time}<br>
+                    <strong>Fecha:</strong> ${post.date} ${formatTime12h(post.time)}<br>
                     <strong>Estado:</strong> <span class="post-status-badge ${post.status}">${post.status}</span>
                 </div>
             </div>
