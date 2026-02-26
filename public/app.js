@@ -345,9 +345,15 @@ async function showPostDetail(postId) {
                     <span>🎨 Regenerar Pieza con IA</span>
                 </button>
                 
-                <button class="btn btn-secondary" onclick="changeImageManually()" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem; border-radius: 8px; font-weight: 600;">
-                    <span>🖼️ Cambiar Imagen Manualmente</span>
+                <button class="btn btn-secondary" onclick="uploadImageFromPC()" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem; border-radius: 8px; font-weight: 600;">
+                    <span>📤 Subir desde PC</span>
                 </button>
+                
+                <button class="btn btn-secondary" onclick="changeImageManually()" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem; border-radius: 8px; font-weight: 600;">
+                    <span>🖼️ Cambiar URL de Imagen</span>
+                </button>
+                
+                <input type="file" id="image-upload-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 
                 <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;">
                     <strong>Plataforma:</strong> ${post.platform}<br>
@@ -1189,6 +1195,333 @@ async function changeImageManually() {
     } catch (error) {
         console.error('Error changing image:', error);
         alert('❌ Error al cambiar imagen: ' + error.message);
+        
+        // Restore original preview
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage && selectedPost.image_url) {
+            previewImage.innerHTML = `<img src="${selectedPost.image_url}" alt="${selectedPost.title}">`;
+        }
+    }
+}
+
+// === UPLOAD IMAGE FROM PC ===
+function uploadImageFromPC() {
+    if (!selectedPost) return;
+    document.getElementById('image-upload-input').click();
+}
+
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!selectedPost) return;
+    
+    try {
+        // Show loading
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage) {
+            previewImage.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
+                    <div style="font-size: 3rem;">⏳</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Procesando imagen...</div>
+                </div>
+            `;
+        }
+        
+        // Read file as data URL
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const img = new Image();
+            img.onload = async () => {
+                // Detect expected aspect ratio based on post type
+                const expectedRatio = getExpectedAspectRatio(selectedPost.type);
+                const currentRatio = img.width / img.height;
+                
+                // Check if crop is needed (tolerance 0.05)
+                const needsCrop = Math.abs(currentRatio - expectedRatio.decimal) > 0.05;
+                
+                if (needsCrop) {
+                    // Show crop modal
+                    showCropModal(img, expectedRatio, file.name);
+                } else {
+                    // Upload directly
+                    await uploadImageToServer(e.target.result, file.name);
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('❌ Error al subir imagen: ' + error.message);
+    }
+    
+    // Clear input
+    event.target.value = '';
+}
+
+function getExpectedAspectRatio(postType) {
+    const ratios = {
+        story: { label: '9:16', decimal: 9/16 },
+        reel: { label: '9:16', decimal: 9/16 },
+        feed: { label: '4:5', decimal: 4/5 },
+        carousel: { label: '1:1', decimal: 1.0 }
+    };
+    return ratios[postType] || { label: '4:5', decimal: 4/5 };
+}
+
+function showCropModal(img, expectedRatio, fileName) {
+    const modalHTML = `
+        <div style="padding: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Ajustar Proporción</h3>
+            <div style="background: rgba(255, 117, 25, 0.1); border: 1px solid var(--accent-orange); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                <div style="font-size: 0.85rem; color: var(--text-primary);">
+                    📐 La imagen debe ser <strong>${expectedRatio.label}</strong> para posts tipo <strong>${selectedPost.type}</strong>
+                </div>
+            </div>
+            
+            <div style="position: relative; max-width: 100%; max-height: 500px; overflow: hidden; background: #000; border-radius: 12px; margin-bottom: 1.5rem;">
+                <canvas id="crop-canvas" style="max-width: 100%; height: auto; cursor: move;"></canvas>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" onclick="applyCrop()" style="flex: 1;">
+                    ✓ Aplicar Recorte
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    showModal('Recortar Imagen', modalHTML);
+    
+    // Initialize crop canvas
+    setTimeout(() => {
+        initCropCanvas(img, expectedRatio);
+    }, 100);
+}
+
+let cropState = {
+    img: null,
+    ratio: null,
+    canvas: null,
+    ctx: null,
+    cropX: 0,
+    cropY: 0,
+    cropWidth: 0,
+    cropHeight: 0,
+    isDragging: false,
+    dragStartX: 0,
+    dragStartY: 0
+};
+
+function initCropCanvas(img, expectedRatio) {
+    const canvas = document.getElementById('crop-canvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to image size (max 600px width)
+    const maxWidth = 600;
+    const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    
+    cropState.img = img;
+    cropState.ratio = expectedRatio;
+    cropState.canvas = canvas;
+    cropState.ctx = ctx;
+    
+    // Calculate initial crop area (centered, max size with correct ratio)
+    const imgRatio = img.width / img.height;
+    
+    if (imgRatio > expectedRatio.decimal) {
+        // Image is wider than target ratio
+        cropState.cropHeight = img.height;
+        cropState.cropWidth = img.height * expectedRatio.decimal;
+        cropState.cropX = (img.width - cropState.cropWidth) / 2;
+        cropState.cropY = 0;
+    } else {
+        // Image is taller than target ratio
+        cropState.cropWidth = img.width;
+        cropState.cropHeight = img.width / expectedRatio.decimal;
+        cropState.cropX = 0;
+        cropState.cropY = (img.height - cropState.cropHeight) / 2;
+    }
+    
+    drawCropPreview();
+    
+    // Add drag handlers
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', drag);
+    canvas.addEventListener('mouseup', endDrag);
+    canvas.addEventListener('mouseleave', endDrag);
+}
+
+function drawCropPreview() {
+    const { img, ctx, canvas, cropX, cropY, cropWidth, cropHeight } = cropState;
+    if (!img || !ctx) return;
+    
+    const scale = canvas.width / img.width;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw full image dimmed
+    ctx.globalAlpha = 0.4;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    // Draw crop area bright
+    ctx.globalAlpha = 1.0;
+    ctx.drawImage(
+        img,
+        cropX, cropY, cropWidth, cropHeight,
+        cropX * scale, cropY * scale, cropWidth * scale, cropHeight * scale
+    );
+    
+    // Draw crop border
+    ctx.strokeStyle = '#ff7519';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cropX * scale, cropY * scale, cropWidth * scale, cropHeight * scale);
+    
+    // Draw corners
+    const cornerSize = 20;
+    ctx.fillStyle = '#ff7519';
+    const x = cropX * scale;
+    const y = cropY * scale;
+    const w = cropWidth * scale;
+    const h = cropHeight * scale;
+    
+    // Top-left
+    ctx.fillRect(x - 2, y - 2, cornerSize, 4);
+    ctx.fillRect(x - 2, y - 2, 4, cornerSize);
+    
+    // Top-right
+    ctx.fillRect(x + w - cornerSize + 2, y - 2, cornerSize, 4);
+    ctx.fillRect(x + w - 2, y - 2, 4, cornerSize);
+    
+    // Bottom-left
+    ctx.fillRect(x - 2, y + h - 2, cornerSize, 4);
+    ctx.fillRect(x - 2, y + h - cornerSize + 2, 4, cornerSize);
+    
+    // Bottom-right
+    ctx.fillRect(x + w - cornerSize + 2, y + h - 2, cornerSize, 4);
+    ctx.fillRect(x + w - 2, y + h - cornerSize + 2, 4, cornerSize);
+}
+
+function startDrag(e) {
+    cropState.isDragging = true;
+    const rect = cropState.canvas.getBoundingClientRect();
+    const scale = cropState.canvas.width / cropState.img.width;
+    cropState.dragStartX = (e.clientX - rect.left) / scale - cropState.cropX;
+    cropState.dragStartY = (e.clientY - rect.top) / scale - cropState.cropY;
+}
+
+function drag(e) {
+    if (!cropState.isDragging) return;
+    
+    const rect = cropState.canvas.getBoundingClientRect();
+    const scale = cropState.canvas.width / cropState.img.width;
+    
+    let newX = (e.clientX - rect.left) / scale - cropState.dragStartX;
+    let newY = (e.clientY - rect.top) / scale - cropState.dragStartY;
+    
+    // Constrain to image bounds
+    newX = Math.max(0, Math.min(newX, cropState.img.width - cropState.cropWidth));
+    newY = Math.max(0, Math.min(newY, cropState.img.height - cropState.cropHeight));
+    
+    cropState.cropX = newX;
+    cropState.cropY = newY;
+    
+    drawCropPreview();
+}
+
+function endDrag() {
+    cropState.isDragging = false;
+}
+
+async function applyCrop() {
+    const { img, cropX, cropY, cropWidth, cropHeight } = cropState;
+    
+    try {
+        // Create cropped canvas
+        const croppedCanvas = document.createElement('canvas');
+        croppedCanvas.width = cropWidth;
+        croppedCanvas.height = cropHeight;
+        const croppedCtx = croppedCanvas.getContext('2d');
+        
+        croppedCtx.drawImage(
+            img,
+            cropX, cropY, cropWidth, cropHeight,
+            0, 0, cropWidth, cropHeight
+        );
+        
+        // Convert to blob
+        const blob = await new Promise(resolve => croppedCanvas.toBlob(resolve, 'image/jpeg', 0.92));
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            closeModal();
+            await uploadImageToServer(e.target.result, 'cropped-image.jpg');
+        };
+        reader.readAsDataURL(blob);
+        
+    } catch (error) {
+        console.error('Error applying crop:', error);
+        alert('❌ Error al recortar imagen: ' + error.message);
+    }
+}
+
+async function uploadImageToServer(base64Data, fileName) {
+    try {
+        // Show loading in preview
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage) {
+            previewImage.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
+                    <div style="font-size: 3rem;">⏳</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Subiendo a Google Drive...</div>
+                </div>
+            `;
+        }
+        
+        const response = await fetchWithAuth(`${API_BASE}/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                post_id: selectedPost.id,
+                image_data: base64Data,
+                file_name: fileName
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al subir imagen');
+        }
+        
+        // Update preview
+        if (previewImage) {
+            previewImage.innerHTML = `<img src="${result.image_url}" alt="${selectedPost.title}">`;
+        }
+        
+        // Update selectedPost
+        selectedPost.image_url = result.image_url;
+        
+        alert('✅ Imagen subida y actualizada exitosamente!');
+        
+        // Reload calendar
+        await loadCalendar();
+        addActivityLogItem(`📤 Imagen subida: ${selectedPost.title.substring(0, 40)}...`);
+        
+    } catch (error) {
+        console.error('Error uploading to server:', error);
+        alert('❌ Error al subir: ' + error.message);
         
         // Restore original preview
         const previewImage = document.getElementById('preview-image');
