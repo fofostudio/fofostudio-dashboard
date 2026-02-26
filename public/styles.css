@@ -1727,3 +1727,338 @@ body::before {
         opacity: 0;
     }
 }
+
+/* === MODERN MODALS & NOTIFICATIONS === */
+.modern-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modern-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modern-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.modern-modal-content {
+    position: relative;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    padding: 2rem;
+    min-width: 400px;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modern-modal.active .modern-modal-content {
+    transform: scale(1);
+}
+
+.modern-modal-icon {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.modern-modal-message {
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.modern-modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modern-modal-actions .btn {
+    min-width: 120px;
+}
+
+/* Loading Modal */
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.modern-loading .modern-modal-message {
+    margin-bottom: 0;
+}
+
+/* Prompt Input */
+.modern-prompt-input {
+    width: 100%;
+    padding: 0.875rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.modern-prompt-input:focus {
+    outline: none;
+    border-color: var(--accent-orange);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Toast Notifications */
+.modern-toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    min-width: 300px;
+    max-width: 500px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transform: translateX(calc(100% + 2rem));
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+.modern-toast.active {
+    transform: translateX(0);
+}
+
+.modern-toast.success {
+    border-left: 4px solid var(--success);
+}
+
+.modern-toast.error {
+    border-left: 4px solid var(--danger);
+}
+
+.modern-toast.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.modern-toast.info {
+    border-left: 4px solid var(--blue);
+}
+
+.modern-toast-icon {
+    font-size: 1.5rem;
+}
+
+.modern-toast-message {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .modern-modal-content {
+        min-width: auto;
+        width: 90%;
+        padding: 1.5rem;
+    }
+    
+    .modern-toast {
+        left: 1rem;
+        right: 1rem;
+        min-width: auto;
+    }
+}
+
+/* === CAMPAIGN DETAIL === */
+.campaign-detail {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    animation: fadeInUp 0.3s ease;
+}
+
+.campaign-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.campaign-detail-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.campaign-detail-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.campaign-detail-close:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.campaign-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.campaign-metric {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.campaign-metric-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.campaign-metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.campaign-ads-list {
+    margin-top: 1.5rem;
+}
+
+.campaign-ads-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ad-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.ad-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ad-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.ad-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ad-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ad-status.active {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--success);
+}
+
+.ad-status.paused {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+}
+
+.ad-creative {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.ad-creative-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.ad-creative-info {
+    flex: 1;
+}
+
+.ad-creative-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.ad-creative-body {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}

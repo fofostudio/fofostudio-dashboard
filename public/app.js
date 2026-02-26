@@ -182,7 +182,9 @@ function renderCampaigns(campaigns) {
     }
     
     const campaignsHTML = campaigns.map(campaign => `
-        <div class="campaign-item ${campaign.status.toLowerCase()}">
+        <div class="campaign-item ${campaign.status.toLowerCase()}" 
+             onclick="showCampaignDetail('${campaign.id}')"
+             style="cursor: pointer; transition: all 0.2s ease;">
             <div class="campaign-info">
                 <div class="campaign-name">${campaign.name}</div>
                 <div class="campaign-meta">${campaign.objective}</div>
@@ -199,7 +201,7 @@ function renderCampaigns(campaigns) {
         </div>
     `).join('');
     
-    container.innerHTML = campaignsHTML;
+    container.innerHTML = campaignsHTML + '<div id="campaign-detail-container"></div>';
 }
 
 async function refreshAds() {
@@ -863,5 +865,150 @@ async function regenerateImage() {
         } else {
             document.getElementById('preview-image').innerHTML = '📸<br>Sin imagen';
         }
+    }
+}
+
+// === CAMPAIGN DETAIL ===
+let selectedCampaignId = null;
+
+async function showCampaignDetail(campaignId) {
+    if (selectedCampaignId === campaignId) {
+        // Close if clicking same campaign
+        closeCampaignDetail();
+        return;
+    }
+    
+    selectedCampaignId = campaignId;
+    const container = document.getElementById('campaign-detail-container');
+    
+    // Show loading
+    container.innerHTML = `
+        <div class="campaign-detail">
+            <div style="text-align: center; padding: 2rem;">
+                <div class="loading-spinner" style="margin: 0 auto;"></div>
+                <div style="margin-top: 1rem; color: var(--text-secondary);">Cargando detalles...</div>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`${API_BASE}/campaign-detail?campaign_id=${campaignId}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Error al cargar detalles');
+        }
+        
+        renderCampaignDetail(data);
+        
+    } catch (error) {
+        console.error('Error loading campaign detail:', error);
+        showToast('Error al cargar detalles de la campaña', 'error');
+        closeCampaignDetail();
+    }
+}
+
+function renderCampaignDetail(data) {
+    const container = document.getElementById('campaign-detail-container');
+    const campaign = data.campaign;
+    const ads = data.ads || [];
+    
+    container.innerHTML = `
+        <div class="campaign-detail">
+            <div class="campaign-detail-header">
+                <div class="campaign-detail-title">📊 ${campaign.name}</div>
+                <button class="campaign-detail-close" onclick="closeCampaignDetail()">Cerrar ✕</button>
+            </div>
+            
+            <div class="campaign-metrics-grid">
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">Spend</div>
+                    <div class="campaign-metric-value">${formatCurrency(campaign.spend)}</div>
+                </div>
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">Impresiones</div>
+                    <div class="campaign-metric-value">${formatNumber(campaign.impressions || 0)}</div>
+                </div>
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">Clicks</div>
+                    <div class="campaign-metric-value">${formatNumber(campaign.clicks || 0)}</div>
+                </div>
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">CTR</div>
+                    <div class="campaign-metric-value">${(campaign.ctr || 0).toFixed(2)}%</div>
+                </div>
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">CPC</div>
+                    <div class="campaign-metric-value">${formatCurrency(campaign.cpc || 0)}</div>
+                </div>
+                <div class="campaign-metric">
+                    <div class="campaign-metric-label">CPM</div>
+                    <div class="campaign-metric-value">${formatCurrency(campaign.cpm || 0)}</div>
+                </div>
+            </div>
+            
+            ${ads.length > 0 ? `
+                <div class="campaign-ads-list">
+                    <div class="campaign-ads-header">
+                        🎨 Anuncios (${ads.length})
+                    </div>
+                    ${ads.map(ad => `
+                        <div class="ad-card">
+                            <div class="ad-card-header">
+                                <div class="ad-name">${ad.name}</div>
+                                <div class="ad-status ${ad.status.toLowerCase()}">${ad.status}</div>
+                            </div>
+                            ${ad.creative ? `
+                                <div class="ad-creative">
+                                    ${ad.creative.image_url ? `
+                                        <img src="${ad.creative.image_url}" 
+                                             alt="Creative" 
+                                             class="ad-creative-image"
+                                             onerror="this.style.display='none'">
+                                    ` : ''}
+                                    <div class="ad-creative-info">
+                                        ${ad.creative.title ? `
+                                            <div class="ad-creative-title">${ad.creative.title}</div>
+                                        ` : ''}
+                                        ${ad.creative.body ? `
+                                            <div class="ad-creative-body">${ad.creative.body}</div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-glass);">
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--text-dim);">Spend</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">${formatCurrency(ad.spend || 0)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--text-dim);">Clicks</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">${formatNumber(ad.clicks || 0)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--text-dim);">CTR</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">${(ad.ctr || 0).toFixed(2)}%</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.7rem; color: var(--text-dim);">CPC</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">${formatCurrency(ad.cpc || 0)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<div style="text-align: center; padding: 2rem; color: var(--text-dim);">No hay anuncios en esta campaña</div>'}
+        </div>
+    `;
+    
+    // Scroll to detail
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeCampaignDetail() {
+    selectedCampaignId = null;
+    const container = document.getElementById('campaign-detail-container');
+    if (container) {
+        container.innerHTML = '';
     }
 }
