@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FofoStudio — Marketing Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🍁</div>
+                    <div class="logo-text">
+                        <h1>FofoStudio</h1>
+                        <span>Marketing Command Center</span>
+                    </div>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-pill">
+                        <span class="stat-label">Spend hoy</span>
+                        <span class="stat-value" id="today-spend">—</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="stat-label">Posts programados</span>
+                        <span class="stat-value" id="scheduled-posts">—</span>
+                    </div>
+                    <div class="stat-pill pulse">
+                        <span class="status-dot"></span>
+                        <span class="stat-label">Live</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="main-grid">
+            <!-- Ads Overview -->
+            <section class="card card-full">
+                <div class="card-header">
+                    <h2>📊 Meta Ads Overview</h2>
+                    <div class="card-actions">
+                        <button class="btn-icon" onclick="refreshAds()" title="Refresh">
+                            <span class="icon">↻</span>
+                        </button>
+                        <select class="select-minimal" id="ads-timeframe">
+                            <option value="today">Hoy</option>
+                            <option value="7d" selected>Últimos 7 días</option>
+                            <option value="30d">Últimos 30 días</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="metrics-grid" id="ads-metrics">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="campaigns-list" id="campaigns-list">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Calendar Grid View -->
+            <section class="card card-calendar">
+                <div class="card-header">
+                    <h2>📅 Calendario de Contenido</h2>
+                    <div class="card-actions">
+                        <button class="btn-icon" onclick="prevMonth()">
+                            <span class="icon">←</span>
+                        </button>
+                        <span class="current-month" id="current-month">—</span>
+                        <button class="btn-icon" onclick="nextMonth()">
+                            <span class="icon">→</span>
+                        </button>
+                        <div class="view-toggle">
+                            <button class="btn-toggle active" data-view="grid" onclick="switchView('grid')">Grid</button>
+                            <button class="btn-toggle" data-view="list" onclick="switchView('list')">Lista</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grid View -->
+                <div class="calendar-grid" id="calendar-grid">
+                    <div class="calendar-header">
+                        <div class="day-header">Dom</div>
+                        <div class="day-header">Lun</div>
+                        <div class="day-header">Mar</div>
+                        <div class="day-header">Mié</div>
+                        <div class="day-header">Jue</div>
+                        <div class="day-header">Vie</div>
+                        <div class="day-header">Sáb</div>
+                    </div>
+                    <div class="calendar-days" id="calendar-days">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- List View (hidden by default) -->
+                <div class="calendar-list hidden" id="calendar-list">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <aside class="card card-sidebar">
+                <div class="card-header">
+                    <h2>⚡ Quick Actions</h2>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="createPost()">
+                        <span class="action-icon">+</span>
+                        <span class="action-text">Nuevo Post</span>
+                    </button>
+                    <button class="action-btn" onclick="pauseAllAds()">
+                        <span class="action-icon">⏸</span>
+                        <span class="action-text">Pausar Ads</span>
+                    </button>
+                    <button class="action-btn" onclick="exportReport()">
+                        <span class="action-icon">📥</span>
+                        <span class="action-text">Export Report</span>
+                    </button>
+                    <button class="action-btn" onclick="syncCalendar()">
+                        <span class="action-icon">🔄</span>
+                        <span class="action-text">Sync Sheets</span>
+                    </button>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Actividad reciente</h3>
+                    <div id="activity-log">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div class="modal hidden" id="post-modal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Detalle del Post</h2>
+                <button class="btn-icon" onclick="closeModal()">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="deletePost()">Eliminar</button>
+                <button class="btn btn-primary" onclick="savePost()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
