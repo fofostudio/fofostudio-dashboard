@@ -5,13 +5,6 @@
 [functions]
   directory = "netlify/functions"
 
-# SPA redirect - NO forzar (permite que functions tengan prioridad)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
-
 [dev]
   command = "python3 -m http.server 8888"
   targetPort = 8888
