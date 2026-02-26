@@ -1,9 +1,11 @@
 // === STATE ===
 // API_BASE is defined in auth.js (loaded first)
+let currentTab = 'pautas';
 let currentDate = new Date();
 let currentView = 'grid';
 let calendarData = [];
 let selectedPost = null;
+let recommendations = [];
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -771,3 +773,155 @@ document.addEventListener('keydown', (e) => {
         closeModal();
     }
 });
+
+// === TABS ===
+function switchTab(tabName) {
+    currentTab = tabName;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `tab-${tabName}`);
+    });
+    
+    // Load tab-specific data
+    if (tabName === 'pautas') {
+        loadRecommendations();
+    } else if (tabName === 'boveda') {
+        loadBoveda();
+    }
+}
+
+// === RECOMMENDATIONS ===
+async function loadRecommendations() {
+    try {
+        const response = await fetch(`${API_BASE}/recommendations`);
+        const data = await response.json();
+        recommendations = data.recommendations || [];
+        renderRecommendations();
+    } catch (error) {
+        console.error('Error loading recommendations:', error);
+        renderRecommendations([]);
+    }
+}
+
+function renderRecommendations() {
+    const container = document.getElementById('recommendations-list');
+    
+    if (recommendations.length === 0) {
+        container.innerHTML = '<div class="activity-item">No hay recomendaciones en este momento</div>';
+        return;
+    }
+    
+    const html = recommendations.map(rec => `
+        <div class="recommendation-item">
+            <div class="recommendation-header">
+                <span class="recommendation-icon">${rec.icon || '💡'}</span>
+                <span class="recommendation-priority ${rec.priority}">${rec.priority}</span>
+            </div>
+            <div class="recommendation-title">${rec.title}</div>
+            <div class="recommendation-description">${rec.description}</div>
+            <div class="recommendation-actions">
+                <button class="btn-execute" onclick="executeRecommendation('${rec.id}')">
+                    Ejecutar
+                </button>
+                <button class="btn-dismiss" onclick="dismissRecommendation('${rec.id}')">
+                    Descartar
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+async function executeRecommendation(recId) {
+    const rec = recommendations.find(r => r.id === recId);
+    if (!rec) return;
+    
+    if (!confirm(`¿Ejecutar: ${rec.title}?`)) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/execute-recommendation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recommendation_id: recId })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al ejecutar recomendación');
+        }
+        
+        alert('✅ Recomendación ejecutada exitosamente!');
+        await loadRecommendations();
+        await loadCampaigns();
+        addActivityLogItem(`✓ Ejecutado: ${rec.title}`);
+        
+    } catch (error) {
+        console.error('Error executing recommendation:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+function dismissRecommendation(recId) {
+    recommendations = recommendations.filter(r => r.id !== recId);
+    renderRecommendations();
+    addActivityLogItem('✕ Recomendación descartada');
+}
+
+// === BOVEDA DE CONTENIDO ===
+async function loadBoveda() {
+    try {
+        const filter = document.getElementById('boveda-filter').value;
+        const response = await fetchWithAuth(`${API_BASE}/assets?filter=${filter}`);
+        const data = await response.json();
+        renderAssets(data.assets || []);
+    } catch (error) {
+        console.error('Error loading assets:', error);
+        renderAssets([]);
+    }
+}
+
+function renderAssets(assets) {
+    const container = document.getElementById('assets-grid');
+    
+    if (assets.length === 0) {
+        container.innerHTML = '<div class="activity-item">No hay assets disponibles</div>';
+        return;
+    }
+    
+    const html = assets.map(asset => `
+        <div class="asset-card" onclick="showAssetDetail('${asset.id}')">
+            <img src="${asset.thumbnail || asset.url}" 
+                 alt="${asset.name}" 
+                 class="asset-thumbnail"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23666%22%3E📄%3C/text%3E%3C/svg%3E'">
+            <div class="asset-info">
+                <div class="asset-name">${asset.name}</div>
+                <div class="asset-meta">${asset.type} • ${asset.size || 'N/A'}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function showAssetDetail(assetId) {
+    // TODO: Implement asset detail view
+    alert('Asset detail view coming soon!');
+}
+
+async function refreshBoveda() {
+    const btn = event.target.closest('.btn-icon');
+    btn.style.transform = 'rotate(360deg)';
+    await loadBoveda();
+    setTimeout(() => {
+        btn.style.transform = '';
+    }, 600);
+}

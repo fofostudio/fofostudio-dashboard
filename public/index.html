@@ -43,125 +43,193 @@
             </div>
         </header>
 
-        <!-- Main Grid -->
-        <main class="main-grid">
-            <!-- Ads Overview -->
-            <section class="card card-full">
-                <div class="card-header">
-                    <h2>📊 Meta Ads Overview</h2>
-                    <div class="card-actions">
-                        <button class="btn-icon" onclick="refreshAds()" title="Refresh">
-                            <span class="icon">↻</span>
-                        </button>
-                        <select class="select-minimal" id="ads-timeframe">
-                            <option value="today">Hoy</option>
-                            <option value="7d" selected>Últimos 7 días</option>
-                            <option value="30d">Últimos 30 días</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="metrics-grid" id="ads-metrics">
-                    <!-- Populated by JS -->
-                </div>
-                <div class="campaigns-list" id="campaigns-list">
-                    <!-- Populated by JS -->
-                </div>
-            </section>
+        <!-- Tabs Navigation -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="pautas" onclick="switchTab('pautas')">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Pautas</span>
+            </button>
+            <button class="tab-btn" data-tab="calendario" onclick="switchTab('calendario')">
+                <span class="tab-icon">📅</span>
+                <span class="tab-label">Calendario</span>
+            </button>
+            <button class="tab-btn" data-tab="boveda" onclick="switchTab('boveda')">
+                <span class="tab-icon">🗂️</span>
+                <span class="tab-label">Bóveda de Contenido</span>
+            </button>
+        </nav>
 
-            <!-- Calendar Grid View -->
-            <section class="card card-calendar">
-                <div class="card-header">
-                    <h2>📅 Calendario de Contenido</h2>
-                    <div class="calendar-legend">
-                        <div class="legend-item">
-                            <div class="legend-dot feed"></div>
-                            <span>Feed</span>
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- TAB: PAUTAS -->
+            <div class="tab-content active" id="tab-pautas">
+                <div class="tab-grid">
+                    <!-- Campaigns & Performance -->
+                    <section class="card card-main">
+                        <div class="card-header">
+                            <h2>📊 Campañas Activas</h2>
+                            <div class="card-actions">
+                                <button class="btn-icon" onclick="refreshAds()" title="Refresh">
+                                    <span class="icon">↻</span>
+                                </button>
+                                <select class="select-minimal" id="ads-timeframe">
+                                    <option value="today">Hoy</option>
+                                    <option value="7d" selected>Últimos 7 días</option>
+                                    <option value="30d">Últimos 30 días</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-dot story"></div>
-                            <span>Story</span>
+                        <div class="metrics-grid" id="ads-metrics">
+                            <!-- Populated by JS -->
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-dot reel"></div>
-                            <span>Reel</span>
+                        <div class="campaigns-list" id="campaigns-list">
+                            <!-- Populated by JS -->
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-dot carousel"></div>
-                            <span>Carrusel</span>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-icon" onclick="prevMonth()">
-                            <span class="icon">←</span>
-                        </button>
-                        <span class="current-month" id="current-month">—</span>
-                        <button class="btn-icon" onclick="nextMonth()">
-                            <span class="icon">→</span>
-                        </button>
-                        <div class="view-toggle">
-                            <button class="btn-toggle active" data-view="grid" onclick="switchView('grid')">Grid</button>
-                            <button class="btn-toggle" data-view="list" onclick="switchView('list')">Lista</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Grid View -->
-                <div class="calendar-grid" id="calendar-grid">
-                    <div class="calendar-header">
-                        <div class="day-header">Dom</div>
-                        <div class="day-header">Lun</div>
-                        <div class="day-header">Mar</div>
-                        <div class="day-header">Mié</div>
-                        <div class="day-header">Jue</div>
-                        <div class="day-header">Vie</div>
-                        <div class="day-header">Sáb</div>
-                    </div>
-                    <div class="calendar-days" id="calendar-days">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
+                    </section>
 
-                <!-- List View (hidden by default) -->
-                <div class="calendar-list hidden" id="calendar-list">
-                    <!-- Populated by JS -->
+                    <!-- Recommendations -->
+                    <aside class="card card-sidebar">
+                        <div class="card-header">
+                            <h2>💡 Recomendaciones</h2>
+                        </div>
+                        <div id="recommendations-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </aside>
                 </div>
-            </section>
+            </div>
 
-            <!-- Quick Actions -->
-            <aside class="card card-sidebar">
-                <div class="card-header">
-                    <h2>⚡ Quick Actions</h2>
-                </div>
-                <div class="quick-actions">
-                    <button class="action-btn" onclick="createPost()">
-                        <span class="action-icon">+</span>
-                        <span class="action-text">Nuevo Post</span>
-                    </button>
-                    <button class="action-btn" onclick="pauseAllAds()">
-                        <span class="action-icon">⏸</span>
-                        <span class="action-text">Pausar Ads</span>
-                    </button>
-                    <button class="action-btn" onclick="exportReport()">
-                        <span class="action-icon">📥</span>
-                        <span class="action-text">Export Report</span>
-                    </button>
-                    <button class="action-btn" onclick="syncCalendar()">
-                        <span class="action-icon">🔄</span>
-                        <span class="action-text">Sync Sheets</span>
-                    </button>
-                    <button class="action-btn" onclick="openSettings()">
-                        <span class="action-icon">⚙️</span>
-                        <span class="action-text">Settings</span>
-                    </button>
-                </div>
+            <!-- TAB: CALENDARIO -->
+            <div class="tab-content" id="tab-calendario">
+                <div class="tab-grid">
+                    <!-- Calendar -->
+                    <section class="card card-main">
+                        <div class="card-header">
+                            <h2>📅 Calendario de Contenido</h2>
+                            <div class="calendar-legend">
+                                <div class="legend-item">
+                                    <div class="legend-dot feed"></div>
+                                    <span>Feed</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-dot story"></div>
+                                    <span>Story</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-dot reel"></div>
+                                    <span>Reel</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-dot carousel"></div>
+                                    <span>Carrusel</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-icon" onclick="prevMonth()">
+                                    <span class="icon">←</span>
+                                </button>
+                                <span class="current-month" id="current-month">—</span>
+                                <button class="btn-icon" onclick="nextMonth()">
+                                    <span class="icon">→</span>
+                                </button>
+                                <div class="view-toggle">
+                                    <button class="btn-toggle active" data-view="grid" onclick="switchView('grid')">Grid</button>
+                                    <button class="btn-toggle" data-view="list" onclick="switchView('list')">Lista</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grid View -->
+                        <div class="calendar-grid" id="calendar-grid">
+                            <div class="calendar-header">
+                                <div class="day-header">Dom</div>
+                                <div class="day-header">Lun</div>
+                                <div class="day-header">Mar</div>
+                                <div class="day-header">Mié</div>
+                                <div class="day-header">Jue</div>
+                                <div class="day-header">Vie</div>
+                                <div class="day-header">Sáb</div>
+                            </div>
+                            <div class="calendar-days" id="calendar-days">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
 
-                <div class="recent-activity">
-                    <h3>Actividad reciente</h3>
-                    <div id="activity-log">
-                        <!-- Populated by JS -->
-                    </div>
+                        <!-- List View (hidden by default) -->
+                        <div class="calendar-list hidden" id="calendar-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Calendar Sidebar -->
+                    <aside class="card card-sidebar">
+                        <div class="card-header">
+                            <h2>⚡ Acciones</h2>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="action-btn" onclick="createPost()">
+                                <span class="action-icon">+</span>
+                                <span class="action-text">Nuevo Post</span>
+                            </button>
+                            <button class="action-btn" onclick="syncCalendar()">
+                                <span class="action-icon">🔄</span>
+                                <span class="action-text">Sync Sheets</span>
+                            </button>
+                            <button class="action-btn" onclick="exportReport()">
+                                <span class="action-icon">📥</span>
+                                <span class="action-text">Export Report</span>
+                            </button>
+                        </div>
+                        <div class="recent-activity">
+                            <h3>Actividad reciente</h3>
+                            <div id="activity-log">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </aside>
                 </div>
-            </aside>
+            </div>
+
+            <!-- TAB: BOVEDA DE CONTENIDO -->
+            <div class="tab-content" id="tab-boveda">
+                <div class="tab-grid">
+                    <!-- Assets Gallery -->
+                    <section class="card card-main">
+                        <div class="card-header">
+                            <h2>🗂️ Assets de Marketing</h2>
+                            <div class="card-actions">
+                                <button class="btn-icon" onclick="refreshBoveda()" title="Refresh">
+                                    <span class="icon">↻</span>
+                                </button>
+                                <select class="select-minimal" id="boveda-filter">
+                                    <option value="all">Todos</option>
+                                    <option value="feed">Feed</option>
+                                    <option value="stories">Stories</option>
+                                    <option value="logos">Logos</option>
+                                    <option value="photos">Fotos</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="assets-grid" id="assets-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+
+                    <!-- Asset Details -->
+                    <aside class="card card-sidebar">
+                        <div class="card-header">
+                            <h2>📋 Info del Asset</h2>
+                        </div>
+                        <div id="asset-details">
+                            <p style="color: var(--text-dim); text-align: center; padding: 2rem;">
+                                Selecciona un asset para ver detalles
+                            </p>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -176,7 +244,7 @@
                 </button>
             </div>
             <div class="modal-body" id="settings-body">
-                <!-- Loaded from settings.html -->
+                <!-- Loaded from settings.js -->
             </div>
         </div>
     </div>
