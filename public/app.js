@@ -2,7 +2,7 @@
 // API_BASE is defined in auth.js (loaded first)
 let currentTab = 'pautas';
 let currentDate = new Date();
-let currentView = 'grid';
+let currentCalendarView = 'week'; // 'month', 'week', 'day'
 let calendarData = [];
 let selectedPost = null;
 let recommendations = [];

@@ -126,39 +126,51 @@
                                 </div>
                             </div>
                             <div class="card-actions">
-                                <button class="btn-icon" onclick="prevMonth()">
+                                <button class="btn-icon" onclick="navigateCalendar(-1)">
                                     <span class="icon">←</span>
                                 </button>
                                 <span class="current-month" id="current-month">—</span>
-                                <button class="btn-icon" onclick="nextMonth()">
+                                <button class="btn-icon" onclick="navigateCalendar(1)">
                                     <span class="icon">→</span>
                                 </button>
                                 <div class="view-toggle">
-                                    <button class="btn-toggle active" data-view="grid" onclick="switchView('grid')">Grid</button>
-                                    <button class="btn-toggle" data-view="list" onclick="switchView('list')">Lista</button>
+                                    <button class="btn-toggle" data-view="month" onclick="switchCalendarView('month')">Mes</button>
+                                    <button class="btn-toggle active" data-view="week" onclick="switchCalendarView('week')">Semana</button>
+                                    <button class="btn-toggle" data-view="day" onclick="switchCalendarView('day')">Día</button>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Grid View -->
-                        <div class="calendar-grid" id="calendar-grid">
-                            <div class="calendar-header">
-                                <div class="day-header">Dom</div>
-                                <div class="day-header">Lun</div>
-                                <div class="day-header">Mar</div>
-                                <div class="day-header">Mié</div>
-                                <div class="day-header">Jue</div>
-                                <div class="day-header">Vie</div>
-                                <div class="day-header">Sáb</div>
+                        <!-- Month View -->
+                        <div class="calendar-view-month" id="view-month">
+                            <div class="calendar-grid">
+                                <div class="calendar-header">
+                                    <div class="day-header">Dom</div>
+                                    <div class="day-header">Lun</div>
+                                    <div class="day-header">Mar</div>
+                                    <div class="day-header">Mié</div>
+                                    <div class="day-header">Jue</div>
+                                    <div class="day-header">Vie</div>
+                                    <div class="day-header">Sáb</div>
+                                </div>
+                                <div class="calendar-days" id="calendar-days-month">
+                                    <!-- Populated by JS -->
+                                </div>
                             </div>
-                            <div class="calendar-days" id="calendar-days">
+                        </div>
+
+                        <!-- Week View -->
+                        <div class="calendar-view-week active" id="view-week">
+                            <div id="calendar-week-grid">
                                 <!-- Populated by JS -->
                             </div>
                         </div>
 
-                        <!-- List View (hidden by default) -->
-                        <div class="calendar-list hidden" id="calendar-list">
-                            <!-- Populated by JS -->
+                        <!-- Day View -->
+                        <div class="calendar-view-day" id="view-day">
+                            <div id="calendar-day-grid">
+                                <!-- Populated by JS -->
+                            </div>
                         </div>
                     </section>
 
@@ -271,6 +283,7 @@
     </div>
 
     <script src="settings.js"></script>
+    <script src="calendar.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
