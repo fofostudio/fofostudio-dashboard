@@ -383,9 +383,42 @@ async function showPostDetail(postId) {
         const post = await response.json();
         selectedPost = post;
         
+        const typeLabels = {
+            feed: 'Feed Post',
+            story: 'Historia',
+            reel: 'Reel',
+            carousel: 'Carrusel'
+        };
+        
         document.getElementById('modal-title').textContent = 'Editar Post';
-        document.getElementById('modal-body').innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        // Add wide class to modal
+        const modal = document.getElementById('post-modal');
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.classList.add('modal-wide');
+        
+        const modalBody = document.getElementById('modal-body');
+        modalBody.className = 'modal-body with-preview';
+        modalBody.innerHTML = `
+            <div class="post-preview">
+                <div class="post-preview-type ${post.type}">
+                    <div class="type-dot"></div>
+                    <span>${typeLabels[post.type] || post.type}</span>
+                </div>
+                
+                <div class="post-preview-image ${post.type}">
+                    ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}">` : `<div class="post-preview-placeholder">📸<br>Sin imagen</div>`}
+                </div>
+                
+                <div style="font-size: 0.8rem; color: var(--text-dim);">
+                    <strong>Plataforma:</strong> ${post.platform}<br>
+                    <strong>Fecha:</strong> ${post.date} ${post.time}<br>
+                    <strong>Estado:</strong> <span class="post-status-badge ${post.status}">${post.status}</span>
+                </div>
+            </div>
+            
+            <div class="post-form">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Título</label>
                     <input type="text" id="edit-title" value="${post.title}" 
@@ -416,8 +449,10 @@ async function showPostDetail(postId) {
                         <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Tipo</label>
                         <select id="edit-type"
                                 style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-primary); font-family: 'Outfit', sans-serif; cursor: pointer;">
-                            <option value="feed" ${post.type === 'feed' ? 'selected' : ''}>Feed</option>
-                            <option value="story" ${post.type === 'story' ? 'selected' : ''}>Story</option>
+                            <option value="feed" ${post.type === 'feed' ? 'selected' : ''}>Feed Post</option>
+                            <option value="story" ${post.type === 'story' ? 'selected' : ''}>Historia</option>
+                            <option value="reel" ${post.type === 'reel' ? 'selected' : ''}>Reel</option>
+                            <option value="carousel" ${post.type === 'carousel' ? 'selected' : ''}>Carrusel</option>
                         </select>
                     </div>
                     <div>
@@ -438,12 +473,7 @@ async function showPostDetail(postId) {
                     </div>
                 </div>
                 
-                ${post.image_url ? `
-                <div>
-                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Imagen</label>
-                    <img src="${post.image_url}" alt="Post image" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-glass);">
                 </div>
-                ` : ''}
             </div>
         `;
         document.querySelector('.modal-footer').style.display = 'flex';
@@ -501,7 +531,10 @@ async function deletePost() {
 }
 
 function closeModal() {
-    document.getElementById('post-modal').classList.add('hidden');
+    const modal = document.getElementById('post-modal');
+    modal.classList.add('hidden');
+    modal.querySelector('.modal-content').classList.remove('modal-wide');
+    document.getElementById('modal-body').className = 'modal-body';
     selectedPost = null;
 }
 
