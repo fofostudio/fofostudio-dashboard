@@ -2,6 +2,9 @@ const fetch = require('node-fetch');
 const { google } = require('googleapis');
 
 exports.handler = async (event, context) => {
+  // Set function timeout to 25s (Netlify max is 26s)
+  context.callbackWaitsForEmptyEventLoop = false;
+  
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -34,11 +37,26 @@ exports.handler = async (event, context) => {
     oauth2Client.setCredentials({ access_token: accessToken });
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
-    // Get all files recursively
-    const allAssets = await getAllFilesRecursive(drive, rootFolderId);
+    // Get all files recursively with timeout protection
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout after 20s')), 20000)
+    );
+    
+    const allAssets = await Promise.race([
+      getAllFilesRecursive(drive, rootFolderId, '', 0, 3), // Max depth 3 levels
+      timeoutPromise
+    ]);
 
-    // Get calendar posts to check associations
-    const calendarPosts = await getCalendarPosts(accessToken);
+    // Get calendar posts to check associations (with timeout)
+    let calendarPosts = [];
+    try {
+      calendarPosts = await Promise.race([
+        getCalendarPosts(accessToken),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Calendar timeout')), 3000))
+      ]);
+    } catch (e) {
+      console.warn('Calendar fetch timed out, skipping associations');
+    }
 
     // Cross-reference assets with calendar
     const assetsWithStatus = allAssets.map(asset => {
@@ -74,22 +92,31 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ 
         error: error.message,
         assets: [],
-        stack: error.stack
+        details: error.stack,
+        hint: error.message.includes('timeout') 
+          ? 'La carpeta tiene demasiados archivos. Considera reducir profundidad de carpetas.'
+          : 'Error al leer Drive. Revisa permisos del token.'
       })
     };
   }
 };
 
-// Recursive file fetcher
-async function getAllFilesRecursive(drive, folderId, path = '') {
+// Recursive file fetcher with depth limit
+async function getAllFilesRecursive(drive, folderId, path = '', currentDepth = 0, maxDepth = 3) {
   let allFiles = [];
 
+  // Stop if we've reached max depth
+  if (currentDepth > maxDepth) {
+    console.log(`Max depth ${maxDepth} reached at path: ${path}`);
+    return allFiles;
+  }
+
   try {
-    // Get all items in current folder
+    // Get all items in current folder (limit to 500 per folder to avoid huge queries)
     const response = await drive.files.list({
       q: `'${folderId}' in parents and trashed=false`,
       fields: 'files(id,name,mimeType,size,createdTime,imageMediaMetadata,videoMediaMetadata,thumbnailLink,webContentLink)',
-      pageSize: 1000,
+      pageSize: 500,
       orderBy: 'createdTime desc'
     });
 
@@ -99,8 +126,8 @@ async function getAllFilesRecursive(drive, folderId, path = '') {
       const currentPath = path ? `${path}/${file.name}` : file.name;
 
       if (file.mimeType === 'application/vnd.google-apps.folder') {
-        // Recursively get files from subfolder
-        const subFiles = await getAllFilesRecursive(drive, file.id, currentPath);
+        // Recursively get files from subfolder (with depth check)
+        const subFiles = await getAllFilesRecursive(drive, file.id, currentPath, currentDepth + 1, maxDepth);
         allFiles = allFiles.concat(subFiles);
       } else {
         // Add file with metadata

@@ -764,6 +764,8 @@ function dismissRecommendation(recId) {
 
 // === BOVEDA DE CONTENIDO ===
 async function loadBoveda() {
+    const container = document.getElementById('assets-grid');
+    
     try {
         const filter = document.getElementById('boveda-filter').value;
         const response = await fetchWithAuth(`${API_BASE}/assets?filter=${filter}`);
@@ -771,7 +773,6 @@ async function loadBoveda() {
         // Handle auth errors
         if (response.status === 401) {
             console.warn('Assets endpoint requires authentication');
-            const container = document.getElementById('assets-grid');
             if (container) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
@@ -784,11 +785,44 @@ async function loadBoveda() {
             return;
         }
         
+        // Handle server errors (502, 500, etc.)
+        if (response.status >= 500) {
+            console.error(`Server error: ${response.status}`);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                        <div style="margin-bottom: 1rem;">Error del servidor (${response.status})</div>
+                        <div style="font-size: 0.9em; opacity: 0.7;">La función tardó demasiado o falló. Puede ser por muchos archivos en Drive.</div>
+                        <div style="margin-top: 1rem;">
+                            <button onclick="loadBoveda()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                Reintentar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
         const data = await response.json();
         renderAssets(data.assets || []);
     } catch (error) {
         console.error('Error loading assets:', error);
-        renderAssets([]);
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💥</div>
+                    <div style="margin-bottom: 1rem;">Error de conexión</div>
+                    <div style="font-size: 0.9em; opacity: 0.7;">${error.message}</div>
+                    <div style="margin-top: 1rem;">
+                        <button onclick="loadBoveda()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            Reintentar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     }
 }
 
