@@ -68,7 +68,8 @@ async function initDashboard() {
     await Promise.all([
         loadAdsOverview(),
         loadCampaigns(),
-        loadCalendar()
+        loadCalendar(),
+        loadRecommendations()
     ]);
     updateActivityLog();
     updateCurrentMonth();
@@ -925,3 +926,11 @@ async function refreshBoveda() {
         btn.style.transform = '';
     }, 600);
 }
+
+// Event listener for boveda filter
+document.addEventListener('DOMContentLoaded', () => {
+    const bovedaFilter = document.getElementById('boveda-filter');
+    if (bovedaFilter) {
+        bovedaFilter.addEventListener('change', loadBoveda);
+    }
+});
