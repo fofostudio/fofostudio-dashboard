@@ -11,8 +11,60 @@ let selectedPost = null;
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
     initDashboard();
 });
+
+async function initAuth() {
+    // Handle OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code) {
+        const success = await googleAuth.handleCallback(code);
+        if (success) {
+            updateGoogleAuthStatus();
+            // Reload data with new auth
+            await initDashboard();
+        }
+        return;
+    }
+    
+    // Update auth status
+    updateGoogleAuthStatus();
+    
+    // Setup auth button click
+    document.getElementById('google-auth-pill').addEventListener('click', handleGoogleAuthClick);
+}
+
+function updateGoogleAuthStatus() {
+    const statusEl = document.getElementById('google-auth-status');
+    const pillEl = document.getElementById('google-auth-pill');
+    
+    if (googleAuth.isAuthenticated()) {
+        const user = googleAuth.getUser();
+        statusEl.textContent = '✓';
+        pillEl.title = `Conectado como ${user.email}`;
+        pillEl.style.background = 'rgba(34, 197, 94, 0.15)';
+        pillEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+    } else {
+        statusEl.textContent = 'Login';
+        pillEl.title = 'Click para conectar Google Drive & Sheets';
+        pillEl.style.background = 'rgba(245, 158, 11, 0.15)';
+        pillEl.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+    }
+}
+
+function handleGoogleAuthClick() {
+    if (googleAuth.isAuthenticated()) {
+        // Show logout confirmation
+        if (confirm('¿Cerrar sesión de Google?')) {
+            googleAuth.logout();
+        }
+    } else {
+        googleAuth.login();
+    }
+}
 
 async function initDashboard() {
     await Promise.all([
@@ -166,7 +218,7 @@ async function loadCalendar() {
     try {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
-        const response = await fetch(`${API_BASE}/calendar-month?year=${year}&month=${month}`);
+        const response = await fetchWithAuth(`${API_BASE}/calendar-month?year=${year}&month=${month}`);
         const data = await response.json();
         
         calendarData = data.posts;

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="auth.js"></script>
 </head>
 <body>
     <div class="container">
@@ -33,6 +34,10 @@
                     <div class="stat-pill pulse">
                         <span class="status-dot"></span>
                         <span class="stat-label">Live</span>
+                    </div>
+                    <div class="stat-pill" id="google-auth-pill" style="cursor: pointer;">
+                        <span class="stat-label">Google</span>
+                        <span class="stat-value" id="google-auth-status">—</span>
                     </div>
                 </div>
             </div>

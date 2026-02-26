@@ -23,30 +23,32 @@ META_AD_ACCOUNT_ID
 
 ---
 
-### 2. Google Sheets API (Service Account)
+### 2. Google OAuth (Recomendado)
+
+**Para Google Drive & Sheets, ahora usamos OAuth** (login con tu cuenta personal).
+
+Ver instrucciones completas en: **`GOOGLE_OAUTH_SETUP.md`**
+
+Variables requeridas:
 
 ```
-GOOGLE_SERVICE_ACCOUNT
+GOOGLE_CLIENT_ID
 ```
-**Valor**: JSON completo de tu service account credentials (en UNA sola línea)
+**Valor**: Client ID de tu OAuth app en Google Cloud Console
 
-**Formato**:
-```json
-{"type":"service_account","project_id":"tu-proyecto","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"...@....iam.gserviceaccount.com","client_id":"...","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"...","universe_domain":"googleapis.com"}
 ```
+GOOGLE_CLIENT_SECRET
+```
+**Valor**: Client Secret de tu OAuth app
 
-**Cómo obtenerlo**:
-1. Ve a [Google Cloud Console](https://console.cloud.google.com)
-2. Selecciona tu proyecto
-3. IAM & Admin → Service Accounts
-4. Crea un service account (o usa uno existente)
-5. Click en el service account → Keys → Add Key → Create new key → JSON
-6. Descarga el JSON
-7. Copia TODO el contenido y pégalo en UNA línea (sin saltos de línea)
+```
+GOOGLE_REDIRECT_URI
+```
+**Valor**: `https://f0f0stud1od4shb0ard4ds.netlify.app`
 
 ---
 
-### 3. Google Spreadsheet ID (opcional)
+### 3. Google Spreadsheet ID (opcional pero recomendado)
 
 ```
 GOOGLE_SPREADSHEET_ID
