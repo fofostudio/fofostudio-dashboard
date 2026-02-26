@@ -764,6 +764,10 @@ body::before {
     animation: modalSlideIn 0.3s ease-out;
 }
 
+.modal-content.modal-large {
+    max-width: 1000px;
+}
+
 @keyframes modalSlideIn {
     from {
         opacity: 0;
@@ -841,6 +845,43 @@ body::before {
 
 .btn-danger:hover {
     background: rgba(239, 68, 68, 0.25);
+}
+
+/* === STATUS BADGES === */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.connected {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-badge.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.error, 
+.status-badge.not_configured, 
+.status-badge.not_authenticated {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.unknown {
+    background: rgba(110, 110, 120, 0.15);
+    color: var(--text-dim);
+    border: 1px solid rgba(110, 110, 120, 0.3);
 }
 
 /* === UTILITIES === */

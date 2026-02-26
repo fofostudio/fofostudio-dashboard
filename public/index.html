@@ -131,6 +131,10 @@
                         <span class="action-icon">🔄</span>
                         <span class="action-text">Sync Sheets</span>
                     </button>
+                    <button class="action-btn" onclick="openSettings()">
+                        <span class="action-icon">⚙️</span>
+                        <span class="action-text">Settings</span>
+                    </button>
                 </div>
 
                 <div class="recent-activity">
@@ -141,6 +145,22 @@
                 </div>
             </aside>
         </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal hidden" id="settings-modal">
+        <div class="modal-overlay" onclick="closeSettingsModal()"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>⚙️ Settings & Health</h2>
+                <button class="btn-icon" onclick="closeSettingsModal()">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+            <div class="modal-body" id="settings-body">
+                <!-- Loaded from settings.html -->
+            </div>
+        </div>
     </div>
 
     <!-- Post Detail Modal -->
@@ -164,6 +184,7 @@
         </div>
     </div>
 
+    <script src="settings.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

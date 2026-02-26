@@ -1,0 +1,376 @@
+<!-- Settings Modal Content -->
+<div class="settings-container">
+    <!-- Health Overview -->
+    <div class="settings-section">
+        <h3>🏥 System Health</h3>
+        <div class="health-grid" id="health-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Meta Ads Configuration -->
+    <div class="settings-section">
+        <h3>📊 Meta Ads Configuration</h3>
+        <div class="config-card">
+            <div class="config-status" id="meta-status">
+                <div class="status-indicator"></div>
+                <span class="status-text">Checking...</span>
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label>Access Token</label>
+                    <input type="password" id="meta-token" placeholder="EAAPbKbPRLeg..." disabled>
+                    <small>Configure in Netlify Environment Variables</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ad Account ID</label>
+                    <input type="text" id="meta-account-id" placeholder="act_XXXXXXXXXX" disabled>
+                    <small>Configure in Netlify Environment Variables</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <input type="text" id="meta-account-name" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Account Status</label>
+                    <input type="text" id="meta-account-status" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google OAuth Configuration -->
+    <div class="settings-section">
+        <h3>🔐 Google OAuth Configuration</h3>
+        <div class="config-card">
+            <div class="config-status" id="google-oauth-status">
+                <div class="status-indicator"></div>
+                <span class="status-text">Checking...</span>
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label>Client ID</label>
+                    <input type="text" id="google-client-id" placeholder="123456789-xxx.apps.googleusercontent.com" disabled>
+                    <small>Configure in Netlify Environment Variables</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Client Secret</label>
+                    <input type="password" id="google-client-secret" placeholder="GOCSPX-xxx" disabled>
+                    <small>Configure in Netlify Environment Variables</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Redirect URI</label>
+                    <input type="text" id="google-redirect-uri" disabled>
+                </div>
+                
+                <div class="form-group" id="google-user-info" style="display: none;">
+                    <label>Logged in as</label>
+                    <input type="text" id="google-user-email" readonly>
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleGoogleAuthClick()" id="google-auth-btn">
+                    Login with Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sheets Configuration -->
+    <div class="settings-section">
+        <h3>📊 Google Sheets Configuration</h3>
+        <div class="config-card">
+            <div class="config-status" id="sheets-status">
+                <div class="status-indicator"></div>
+                <span class="status-text">Checking...</span>
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label>Spreadsheet ID</label>
+                    <input type="text" id="sheets-spreadsheet-id" placeholder="1aBcDeFgHiJkLmNoPqRsTuVwXyZ..." disabled>
+                    <small>Configure in Netlify Environment Variables</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Spreadsheet Title</label>
+                    <input type="text" id="sheets-title" readonly>
+                </div>
+                
+                <div class="help-text">
+                    <strong>How to find Spreadsheet ID:</strong><br>
+                    Open your Google Sheet → Copy the ID from the URL:<br>
+                    <code>https://docs.google.com/spreadsheets/d/<span class="highlight">1aBcDeFg...</span>/edit</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Drive Configuration -->
+    <div class="settings-section">
+        <h3>💾 Google Drive Configuration</h3>
+        <div class="config-card">
+            <div class="config-status" id="drive-status">
+                <div class="status-indicator"></div>
+                <span class="status-text">Checking...</span>
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label>Storage Used</label>
+                    <input type="text" id="drive-storage-used" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Storage Limit</label>
+                    <input type="text" id="drive-storage-limit" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Variables Guide -->
+    <div class="settings-section">
+        <h3>⚙️ Environment Variables</h3>
+        <div class="config-card">
+            <div class="help-text">
+                <p><strong>To configure environment variables:</strong></p>
+                <ol>
+                    <li>Go to <a href="https://app.netlify.com/sites/f0f0stud1od4shb0ard4ds/settings/env" target="_blank">Netlify Environment Variables</a></li>
+                    <li>Click "Add a variable"</li>
+                    <li>Add the required variables (see docs)</li>
+                    <li>Click "Trigger deploy" to apply changes</li>
+                </ol>
+                
+                <p><strong>Required Variables:</strong></p>
+                <ul>
+                    <li><code>META_ACCESS_TOKEN</code> - Meta Ads API token</li>
+                    <li><code>META_AD_ACCOUNT_ID</code> - Meta ad account ID (act_XXX)</li>
+                    <li><code>GOOGLE_CLIENT_ID</code> - OAuth Client ID</li>
+                    <li><code>GOOGLE_CLIENT_SECRET</code> - OAuth Client Secret</li>
+                    <li><code>GOOGLE_REDIRECT_URI</code> - OAuth redirect URL</li>
+                    <li><code>GOOGLE_SPREADSHEET_ID</code> - (Optional) Sheets ID</li>
+                </ul>
+                
+                <p>
+                    <a href="https://github.com/fofostudio/fofostudio-dashboard/blob/master/GOOGLE_OAUTH_SETUP.md" target="_blank" class="btn btn-secondary">
+                        📖 Setup Guide
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+}
+
+.settings-section h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.health-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-left: 3px solid transparent;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.health-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.health-card.connected {
+    border-left-color: var(--success);
+}
+
+.health-card.warning {
+    border-left-color: var(--warning);
+}
+
+.health-card.error, .health-card.not_configured, .health-card.not_authenticated {
+    border-left-color: var(--danger);
+}
+
+.health-card-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.health-card-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.health-card-message {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.config-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.config-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-glass);
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-dim);
+}
+
+.status-indicator.connected {
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.status-indicator.warning {
+    background: var(--warning);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.status-indicator.error, .status-indicator.not_configured, .status-indicator.not_authenticated {
+    background: var(--danger);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-text {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-orange);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.form-group input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-group input:readonly {
+    background: rgba(255, 255, 255, 0.01);
+    cursor: default;
+}
+
+.form-group small {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.help-text {
+    background: rgba(255, 117, 25, 0.05);
+    border: 1px solid rgba(255, 117, 25, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.help-text strong {
+    color: var(--text-primary);
+}
+
+.help-text code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+
+.help-text .highlight {
+    color: var(--accent-orange);
+    font-weight: 700;
+}
+
+.help-text a {
+    color: var(--accent-orange);
+    text-decoration: none;
+}
+
+.help-text a:hover {
+    text-decoration: underline;
+}
+
+.help-text ul, .help-text ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.help-text li {
+    margin: 0.25rem 0;
+}
+</style>
