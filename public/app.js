@@ -327,7 +327,7 @@ function showDayPosts(dateStr) {
 
 async function showPostDetail(postId) {
     try {
-        const response = await fetch(`${API_BASE}/posts/${postId}`);
+        const response = await fetch(`${API_BASE}/get-post?id=${postId}`);
         const post = await response.json();
         selectedPost = post;
         
@@ -414,7 +414,7 @@ async function savePost() {
     };
     
     try {
-        await fetch(`${API_BASE}/posts/${selectedPost.id}`, {
+        await fetch(`${API_BASE}/update-post?id=${selectedPost.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedPost)
@@ -435,7 +435,7 @@ async function deletePost() {
     if (!confirm(`¿Eliminar "${selectedPost.title}"?`)) return;
     
     try {
-        await fetch(`${API_BASE}/posts/${selectedPost.id}`, {
+        await fetch(`${API_BASE}/delete-post?id=${selectedPost.id}`, {
             method: 'DELETE'
         });
         
