@@ -1483,6 +1483,49 @@ body::before {
     background: var(--warning);
 }
 
+.post-card-type-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.post-card-type-badge.feed {
+    background: linear-gradient(135deg, rgba(255, 117, 25, 0.9), rgba(255, 164, 99, 0.8));
+    color: #fff;
+}
+
+.post-card-type-badge.story {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(192, 132, 252, 0.8));
+    color: #fff;
+}
+
+.post-card-type-badge.reel {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.9), rgba(251, 113, 133, 0.8));
+    color: #fff;
+}
+
+.post-card-type-badge.carousel {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(96, 165, 250, 0.8));
+    color: #fff;
+}
+
+.post-card {
+    position: relative;
+}
+
 /* === DAY VIEW === */
 .day-post-card {
     background: rgba(255, 255, 255, 0.03);

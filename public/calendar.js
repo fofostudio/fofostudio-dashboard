@@ -215,6 +215,8 @@ function renderPostCard(post, currentDateStr) {
         currentDate: currentDateStr
     }).replace(/"/g, '&quot;');
     
+    const typeBadge = getTypeBadge(post.type);
+    
     return `
         <div class="post-card ${post.type}" 
              draggable="true"
@@ -223,6 +225,9 @@ function renderPostCard(post, currentDateStr) {
              ondragstart="handleDragStart(event)"
              ondragend="handleDragEnd(event)"
              onclick="showPostDetail('${post.id}')">
+            <div class="post-card-type-badge ${post.type}">
+                ${typeBadge.icon} ${typeBadge.label}
+            </div>
             ${post.image_url ? `
                 <div class="post-card-thumbnail">
                     <img src="${post.image_url}" alt="${post.title}" draggable="false"
@@ -274,6 +279,16 @@ function getTypeLabel(type) {
         carousel: 'Carrusel'
     };
     return labels[type] || type;
+}
+
+function getTypeBadge(type) {
+    const badges = {
+        feed: { icon: '📱', label: 'Post' },
+        story: { icon: '📲', label: 'Historia' },
+        reel: { icon: '🎬', label: 'Reel' },
+        carousel: { icon: '🎠', label: 'Carrusel' }
+    };
+    return badges[type] || { icon: '📄', label: 'Post' };
 }
 
 function getPlatformLabel(platform) {
