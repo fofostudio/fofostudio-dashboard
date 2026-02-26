@@ -77,6 +77,21 @@ body::before {
 .logo-icon {
     font-size: 2.5rem;
     filter: drop-shadow(0 0 20px rgba(255, 117, 25, 0.5));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-svg {
+    width: 48px;
+    height: 48px;
+    filter: drop-shadow(0 4px 12px rgba(255, 117, 25, 0.4));
+    transition: all 0.3s ease;
+}
+
+.logo-svg:hover {
+    filter: drop-shadow(0 6px 16px rgba(255, 117, 25, 0.6));
+    transform: scale(1.05);
 }
 
 .logo-text h1 {
