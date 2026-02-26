@@ -1684,3 +1684,46 @@ body::before {
         grid-template-columns: 1fr;
     }
 }
+
+/* === DRAG & DROP === */
+.post-card[draggable="true"] {
+    cursor: grab;
+}
+
+.post-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.week-day.drag-over {
+    background: rgba(255, 117, 25, 0.2);
+    border-color: var(--accent-orange);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.week-day {
+    transition: all 0.2s ease;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

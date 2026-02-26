@@ -139,13 +139,17 @@ function renderWeekView() {
         const isToday = isSameDay(date, new Date());
         
         weekHTML += `
-            <div class="week-day ${isToday ? 'today' : ''}">
+            <div class="week-day ${isToday ? 'today' : ''}" 
+                 data-date="${dateStr}"
+                 ondrop="handleDrop(event)"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)">
                 <div class="week-day-header">
                     <div class="week-day-name">${dayNames[i]}</div>
                     <div class="week-day-number">${date.getDate()}</div>
                 </div>
                 <div class="week-day-posts">
-                    ${dayPosts.map(post => renderPostCard(post)).join('')}
+                    ${dayPosts.map(post => renderPostCard(post, dateStr)).join('')}
                 </div>
             </div>
         `;
@@ -204,12 +208,24 @@ function renderDayView() {
 }
 
 // === POST CARD (for week view) ===
-function renderPostCard(post) {
+function renderPostCard(post, currentDateStr) {
+    const postData = JSON.stringify({
+        id: post.id,
+        title: post.title,
+        currentDate: currentDateStr
+    }).replace(/"/g, '&quot;');
+    
     return `
-        <div class="post-card ${post.type}" onclick="showPostDetail('${post.id}')">
+        <div class="post-card ${post.type}" 
+             draggable="true"
+             data-post-id="${post.id}"
+             data-post-data='${postData}'
+             ondragstart="handleDragStart(event)"
+             ondragend="handleDragEnd(event)"
+             onclick="showPostDetail('${post.id}')">
             ${post.image_url ? `
                 <div class="post-card-thumbnail">
-                    <img src="${post.image_url}" alt="${post.title}"
+                    <img src="${post.image_url}" alt="${post.title}" draggable="false"
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect fill=%22%23222%22 width=%2280%22 height=%2280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2230%22%3E📸%3C/text%3E%3C/svg%3E'">
                 </div>
             ` : `
@@ -267,4 +283,182 @@ function getPlatformLabel(platform) {
         instagram: 'Instagram'
     };
     return labels[platform] || platform;
+}
+
+// === DRAG & DROP ===
+let draggedPost = null;
+
+function handleDragStart(event) {
+    draggedPost = JSON.parse(event.target.dataset.postData);
+    event.target.style.opacity = '0.4';
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/html', event.target.innerHTML);
+}
+
+function handleDragEnd(event) {
+    event.target.style.opacity = '1';
+}
+
+function handleDragOver(event) {
+    if (event.preventDefault) {
+        event.preventDefault();
+    }
+    
+    event.dataTransfer.dropEffect = 'move';
+    
+    // Add visual feedback
+    const weekDay = event.currentTarget;
+    if (weekDay.classList.contains('week-day')) {
+        weekDay.classList.add('drag-over');
+    }
+    
+    return false;
+}
+
+function handleDragLeave(event) {
+    const weekDay = event.currentTarget;
+    if (weekDay.classList.contains('week-day')) {
+        weekDay.classList.remove('drag-over');
+    }
+}
+
+async function handleDrop(event) {
+    if (event.stopPropagation) {
+        event.stopPropagation();
+    }
+    
+    const weekDay = event.currentTarget;
+    weekDay.classList.remove('drag-over');
+    
+    if (!draggedPost) return false;
+    
+    const newDate = weekDay.dataset.date;
+    const oldDate = draggedPost.currentDate;
+    
+    if (newDate === oldDate) {
+        return false; // Same day, no change
+    }
+    
+    // Format dates for confirmation
+    const newDateObj = new Date(newDate);
+    const oldDateObj = new Date(oldDate);
+    
+    const newDateStr = newDateObj.toLocaleDateString('es-ES', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+    });
+    const oldDateStr = oldDateObj.toLocaleDateString('es-ES', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+    });
+    
+    // Confirmation dialog
+    if (!confirm(`¿Mover "${draggedPost.title}" de ${oldDateStr} a ${newDateStr}?`)) {
+        draggedPost = null;
+        return false;
+    }
+    
+    // Show loading
+    const loadingId = 'drag-loading-' + Date.now();
+    showLoadingOverlay(loadingId, 'Actualizando fecha...');
+    
+    try {
+        // Update date via API
+        const response = await fetchWithAuth(`${API_BASE}/update-post-date`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                post_id: draggedPost.id,
+                new_date: newDate
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al actualizar fecha');
+        }
+        
+        // Success - reload calendar
+        await loadCalendar();
+        addActivityLogItem(`📅 Post movido: ${draggedPost.title.substring(0, 40)}...`);
+        
+        hideLoadingOverlay(loadingId);
+        
+        // Show success notification
+        showNotification('✅ Fecha actualizada exitosamente', 'success');
+        
+    } catch (error) {
+        console.error('Error moving post:', error);
+        hideLoadingOverlay(loadingId);
+        alert('❌ Error al mover el post: ' + error.message);
+    }
+    
+    draggedPost = null;
+    return false;
+}
+
+// === LOADING OVERLAY ===
+function showLoadingOverlay(id, message) {
+    const overlay = document.createElement('div');
+    overlay.id = id;
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px);
+    `;
+    overlay.innerHTML = `
+        <div style="
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem 3rem;
+            text-align: center;
+        ">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+            <div style="color: var(--text-primary); font-size: 1.125rem; font-weight: 600;">${message}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay(id) {
+    const overlay = document.getElementById(id);
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'rgba(34, 197, 94, 0.95)' : 'rgba(59, 130, 246, 0.95)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
