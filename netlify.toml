@@ -4,6 +4,9 @@
 
 [functions]
   directory = "netlify/functions"
+  # Note: regenerate-image may timeout on Free plan (10s limit)
+  # Pro plan allows up to 26s, but image generation can take 30-90s
+  # TODO: Implement async generation with webhooks for production
 
 [dev]
   command = "python3 -m http.server 8888"

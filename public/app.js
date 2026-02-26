@@ -600,6 +600,8 @@ function updateActivityLog() {
 
 function addActivityLogItem(text) {
     const log = document.getElementById('activity-log');
+    if (!log) return; // Protect against null
+    
     const item = document.createElement('div');
     item.className = 'activity-item';
     item.innerHTML = `${text}<span class="activity-time">Ahora</span>`;
@@ -1008,27 +1010,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function regenerateImage() {
+async function regenerateImage(event) {
     if (!selectedPost) return;
     
-    if (!confirm(`¿Regenerar pieza gráfica para "${selectedPost.title}"?\n\nEsto tomará 30-60 segundos.`)) return;
+    if (!confirm(`¿Regenerar pieza gráfica para "${selectedPost.title}"?\n\nEsto tomará 30-90 segundos.`)) return;
+    
+    let regenerateBtn = null;
+    let originalHTML = '';
     
     try {
         // Show loading state
-        const regenerateBtn = event.target.closest('.btn-regenerate');
-        const originalHTML = regenerateBtn.innerHTML;
-        regenerateBtn.innerHTML = '<span>⏳ Generando...</span>';
-        regenerateBtn.disabled = true;
+        if (event && event.target) {
+            regenerateBtn = event.target.closest('.btn-regenerate');
+            if (regenerateBtn) {
+                originalHTML = regenerateBtn.innerHTML;
+                regenerateBtn.innerHTML = '<span>⏳ Generando...</span>';
+                regenerateBtn.disabled = true;
+            }
+        }
         
         // Update preview with loading spinner
         const previewImage = document.getElementById('preview-image');
-        const originalPreview = previewImage.innerHTML;
-        previewImage.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
-                <div style="font-size: 3rem;">⏳</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">Generando con IA...</div>
-            </div>
-        `;
+        let originalPreview = '';
+        if (previewImage) {
+            originalPreview = previewImage.innerHTML;
+            previewImage.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
+                    <div style="font-size: 3rem;">⏳</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Generando con IA...</div>
+                    <div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 0.5rem;">Puede tomar hasta 90 segundos</div>
+                </div>
+            `;
+        }
         
         const response = await fetchWithAuth(`${API_BASE}/regenerate-image`, {
             method: 'POST',
@@ -1043,6 +1056,12 @@ async function regenerateImage() {
             })
         });
         
+        // Handle timeout or HTML error pages
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Timeout o error del servidor. La generación puede tomar más tiempo. Por favor espera 1-2 minutos e intenta recargar.');
+        }
+        
         const result = await response.json();
         
         if (!response.ok) {
@@ -1050,7 +1069,9 @@ async function regenerateImage() {
         }
         
         // Update preview with new image
-        previewImage.innerHTML = `<img src="${result.direct_url}" alt="Nueva pieza generada">`;
+        if (previewImage) {
+            previewImage.innerHTML = `<img src="${result.direct_url}" alt="Nueva pieza generada">`;
+        }
         
         // Update selectedPost
         selectedPost.image_url = result.direct_url;
@@ -1063,23 +1084,35 @@ async function regenerateImage() {
         addActivityLogItem(`🎨 Pieza regenerada: ${selectedPost.title.substring(0, 40)}...`);
         
         // Restore button
-        regenerateBtn.innerHTML = originalHTML;
-        regenerateBtn.disabled = false;
+        if (regenerateBtn) {
+            regenerateBtn.innerHTML = originalHTML || '<span>🎨 Regenerar Pieza</span>';
+            regenerateBtn.disabled = false;
+        }
         
     } catch (error) {
         console.error('Error regenerating image:', error);
-        alert('❌ Error al regenerar: ' + error.message);
         
-        // Restore button and preview
-        const regenerateBtn = event.target.closest('.btn-regenerate');
-        regenerateBtn.innerHTML = '<span>🎨 Regenerar Pieza</span>';
-        regenerateBtn.disabled = false;
+        let errorMsg = error.message;
+        if (error.message.includes('JSON') || error.message.includes('Unexpected token')) {
+            errorMsg = 'Timeout del servidor (504). La generación puede estar en progreso. Espera 1-2 minutos y recarga para ver si la imagen se actualizó.';
+        }
+        
+        alert('❌ Error al regenerar:\n\n' + errorMsg);
+        
+        // Restore button
+        if (regenerateBtn) {
+            regenerateBtn.innerHTML = originalHTML || '<span>🎨 Regenerar Pieza</span>';
+            regenerateBtn.disabled = false;
+        }
         
         // Restore original preview if it exists
-        if (selectedPost.image_url) {
-            document.getElementById('preview-image').innerHTML = `<img src="${selectedPost.image_url}" alt="${selectedPost.title}">`;
-        } else {
-            document.getElementById('preview-image').innerHTML = '📸<br>Sin imagen';
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage) {
+            if (selectedPost.image_url) {
+                previewImage.innerHTML = `<img src="${selectedPost.image_url}" alt="${selectedPost.title}">`;
+            } else {
+                previewImage.innerHTML = '📸<br>Sin imagen';
+            }
         }
     }
 }
