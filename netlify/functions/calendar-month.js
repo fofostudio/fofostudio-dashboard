@@ -107,11 +107,11 @@ async function readSheetsData(accessToken, spreadsheetId, year, month, monthStr)
       const colIndices = {
         date: findColumnIndex(header, ['fecha', 'date', 'día', 'dia']),
         time: findColumnIndex(header, ['hora', 'time', 'horario']),
-        title: findColumnIndex(header, ['título', 'titulo', 'title', 'texto', 'copy']),
+        title: findColumnIndex(header, ['mensaje completo', 'mensaje', 'título', 'titulo', 'title', 'texto', 'copy']),
         description: findColumnIndex(header, ['descripción', 'descripcion', 'description', 'caption']),
         type: findColumnIndex(header, ['tipo', 'type', 'formato', 'format']),
-        platform: findColumnIndex(header, ['plataforma', 'platform', 'red']),
-        image: findColumnIndex(header, ['imagen', 'image', 'url', 'asset', 'pieza'])
+        platform: findColumnIndex(header, ['plataforma', 'plataformas', 'platform', 'red']),
+        image: findColumnIndex(header, ['url imagen', 'imagen', 'image', 'url', 'asset', 'pieza'])
       };
 
       // Skip header row
@@ -132,13 +132,20 @@ async function readSheetsData(accessToken, spreadsheetId, year, month, monthStr)
           if (typeValue.includes('reel')) postType = 'reel';
           else if (typeValue.includes('carrusel') || typeValue.includes('carousel')) postType = 'carousel';
           else if (typeValue.includes('story') || typeValue.includes('historia')) postType = 'story';
-          else if (typeValue.includes('feed') || typeValue.includes('post')) postType = 'feed';
+          else if (typeValue.includes('feed') || typeValue.includes('post') || typeValue.includes('educational') || typeValue.includes('case') || typeValue.includes('humor')) postType = 'feed';
         }
 
-        const time = colIndices.time >= 0 ? (row[colIndices.time] || '') : '';
+        // Parse and normalize time (convert "12:00 PM" to "12:00")
+        let time = colIndices.time >= 0 ? (row[colIndices.time] || '') : '';
+        time = normalizeTime(time);
+        
         const title = colIndices.title >= 0 ? (row[colIndices.title] || '') : '';
         const description = colIndices.description >= 0 ? (row[colIndices.description] || '') : '';
-        const platform = colIndices.platform >= 0 ? (row[colIndices.platform] || 'both') : 'both';
+        
+        // Parse platform (handle "FB + IG" format)
+        let platform = colIndices.platform >= 0 ? (row[colIndices.platform] || 'both') : 'both';
+        platform = normalizePlatform(platform);
+        
         const imageUrl = colIndices.image >= 0 ? (row[colIndices.image] || '') : '';
 
         if (!title && !description) continue; // Skip empty rows
@@ -174,6 +181,40 @@ function findColumnIndex(header, possibleNames) {
     }
   }
   return -1;
+}
+
+function normalizeTime(timeStr) {
+  if (!timeStr) return '';
+  
+  // Convert "12:00 PM" to "12:00" (24h format)
+  try {
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return timeStr;
+    
+    let hours = parseInt(match[1]);
+    const minutes = match[2];
+    const meridiem = match[3]?.toUpperCase();
+    
+    if (meridiem === 'PM' && hours < 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+    
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  } catch {
+    return timeStr;
+  }
+}
+
+function normalizePlatform(platformStr) {
+  if (!platformStr) return 'both';
+  
+  const lower = platformStr.toLowerCase();
+  
+  if (lower.includes('fb') && lower.includes('ig')) return 'both';
+  if (lower.includes('facebook') && lower.includes('instagram')) return 'both';
+  if (lower.includes('facebook')) return 'facebook';
+  if (lower.includes('instagram') || lower.includes('ig')) return 'instagram';
+  
+  return 'both';
 }
 
 function determineStatus(dateStr, timeStr) {
