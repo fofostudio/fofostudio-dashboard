@@ -1,0 +1,8 @@
+{
+  "name": "fofostudio-dashboard",
+  "version": "1.0.0",
+  "description": "FofoStudio Marketing Command Center",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}

@@ -1,5 +1,2 @@
-# Netlify Functions - NO redirigir
-/.netlify/* /.netlify/:splat 200
-
-# SPA fallback - solo para rutas que no existan
+# SPA fallback - only for routes that don't exist
 /* /index.html 200
