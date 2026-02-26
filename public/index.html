@@ -64,9 +64,9 @@
             
             <!-- TAB: PAUTAS -->
             <div class="tab-content active" id="tab-pautas">
-                <div class="tab-grid">
+                <div class="tab-grid-sidebar">
                     <!-- Campaigns & Performance -->
-                    <section class="card card-main">
+                    <section class="card">
                         <div class="card-header">
                             <h2>📊 Campañas Activas</h2>
                             <div class="card-actions">
@@ -89,7 +89,7 @@
                     </section>
 
                     <!-- Recommendations -->
-                    <aside class="card card-sidebar">
+                    <aside class="card">
                         <div class="card-header">
                             <h2>💡 Recomendaciones</h2>
                         </div>
@@ -102,37 +102,47 @@
 
             <!-- TAB: CALENDARIO -->
             <div class="tab-content" id="tab-calendario">
-                <div class="tab-grid">
+                <div class="tab-full">
                     <!-- Calendar -->
-                    <section class="card card-main">
-                        <div class="card-header">
+                    <section class="card">
+                        <div class="card-header" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
                             <h2>📅 Calendario de Contenido</h2>
-                            <div class="calendar-legend">
-                                <div class="legend-item">
-                                    <div class="legend-dot feed"></div>
-                                    <span>Feed</span>
+                            
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                                <div class="calendar-legend">
+                                    <div class="legend-item">
+                                        <div class="legend-dot feed"></div>
+                                        <span>Feed</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot story"></div>
+                                        <span>Story</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot reel"></div>
+                                        <span>Reel</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot carousel"></div>
+                                        <span>Carrusel</span>
+                                    </div>
                                 </div>
-                                <div class="legend-item">
-                                    <div class="legend-dot story"></div>
-                                    <span>Story</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-dot reel"></div>
-                                    <span>Reel</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-dot carousel"></div>
-                                    <span>Carrusel</span>
-                                </div>
-                            </div>
-                            <div class="card-actions">
+                                
+                                <button class="btn-icon" onclick="createPost()" title="Nuevo Post">
+                                    <span class="icon">+</span>
+                                </button>
+                                <button class="btn-icon" onclick="syncCalendar()" title="Sync Sheets">
+                                    <span class="icon">🔄</span>
+                                </button>
+                                
                                 <button class="btn-icon" onclick="navigateCalendar(-1)">
                                     <span class="icon">←</span>
                                 </button>
-                                <span class="current-month" id="current-month">—</span>
+                                <span class="current-month" id="current-month" style="min-width: 180px; text-align: center; font-weight: 600;">—</span>
                                 <button class="btn-icon" onclick="navigateCalendar(1)">
                                     <span class="icon">→</span>
                                 </button>
+                                
                                 <div class="view-toggle">
                                     <button class="btn-toggle" data-view="month" onclick="switchCalendarView('month')">Mes</button>
                                     <button class="btn-toggle active" data-view="week" onclick="switchCalendarView('week')">Semana</button>
@@ -173,41 +183,14 @@
                             </div>
                         </div>
                     </section>
-
-                    <!-- Calendar Sidebar -->
-                    <aside class="card card-sidebar">
-                        <div class="card-header">
-                            <h2>⚡ Acciones</h2>
-                        </div>
-                        <div class="quick-actions">
-                            <button class="action-btn" onclick="createPost()">
-                                <span class="action-icon">+</span>
-                                <span class="action-text">Nuevo Post</span>
-                            </button>
-                            <button class="action-btn" onclick="syncCalendar()">
-                                <span class="action-icon">🔄</span>
-                                <span class="action-text">Sync Sheets</span>
-                            </button>
-                            <button class="action-btn" onclick="exportReport()">
-                                <span class="action-icon">📥</span>
-                                <span class="action-text">Export Report</span>
-                            </button>
-                        </div>
-                        <div class="recent-activity">
-                            <h3>Actividad reciente</h3>
-                            <div id="activity-log">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </aside>
                 </div>
             </div>
 
             <!-- TAB: BOVEDA DE CONTENIDO -->
             <div class="tab-content" id="tab-boveda">
-                <div class="tab-grid">
+                <div class="tab-grid-sidebar">
                     <!-- Assets Gallery -->
-                    <section class="card card-main">
+                    <section class="card">
                         <div class="card-header">
                             <h2>🗂️ Assets de Marketing</h2>
                             <div class="card-actions">
@@ -229,7 +212,7 @@
                     </section>
 
                     <!-- Asset Details -->
-                    <aside class="card card-sidebar">
+                    <aside class="card">
                         <div class="card-header">
                             <h2>📋 Info del Asset</h2>
                         </div>

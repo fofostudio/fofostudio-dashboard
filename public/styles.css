@@ -1646,3 +1646,41 @@ body::before {
         height: 200px;
     }
 }
+
+/* === TAB LAYOUTS === */
+.tab-full {
+    /* Full width layout for calendario */
+}
+
+.tab-grid-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+}
+
+/* Reduce excessive padding */
+.card {
+    padding: 1.5rem;
+}
+
+.card-header {
+    margin-bottom: 1.5rem;
+}
+
+/* Remove min-height constraint */
+.card-main {
+    min-height: auto;
+}
+
+/* Compact metrics grid */
+.metrics-grid {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .tab-grid-sidebar {
+        grid-template-columns: 1fr;
+    }
+}
