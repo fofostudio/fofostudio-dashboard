@@ -35,3 +35,4 @@ npm-debug.log*
 *.key
 credentials.json
 token.json
+CREDENTIALS_FOR_NETLIFY.txt
