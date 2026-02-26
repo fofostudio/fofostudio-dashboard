@@ -1,3 +1,8 @@
+// === CONFIG ===
+const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5555/api'
+    : '/.netlify/functions';
+
 // === GOOGLE OAUTH MANAGER ===
 
 class GoogleAuth {
