@@ -1596,47 +1596,78 @@ body::before {
     background: var(--warning);
 }
 
-.post-card-type-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 0.35rem 0.65rem;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.post-card-type-badge.feed {
-    background: linear-gradient(135deg, rgba(255, 117, 25, 0.9), rgba(255, 164, 99, 0.8));
-    color: #fff;
-}
-
-.post-card-type-badge.story {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(192, 132, 252, 0.8));
-    color: #fff;
-}
-
-.post-card-type-badge.reel {
-    background: linear-gradient(135deg, rgba(244, 63, 94, 0.9), rgba(251, 113, 133, 0.8));
-    color: #fff;
-}
-
-.post-card-type-badge.carousel {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(96, 165, 250, 0.8));
-    color: #fff;
-}
-
 .post-card {
     position: relative;
+}
+
+/* Badge pequeño abajo (como el punto de estado) */
+.post-card-type-badge-bottom {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.post-card-type-badge-bottom.feed {
+    color: var(--accent-orange);
+}
+
+.post-card-type-badge-bottom.story {
+    color: #a855f7;
+}
+
+.post-card-type-badge-bottom.reel {
+    color: #f43f5e;
+}
+
+.post-card-type-badge-bottom.carousel {
+    color: #3b82f6;
+}
+
+/* Footer con status y badge */
+.post-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
+/* === STORY CARD (imagen de fondo completo) === */
+.post-card-story {
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+
+.post-card-story-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0.75rem;
+}
+
+.post-card-time-story {
+    font-size: 0.9rem;
+    color: #fff;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+}
+
+.post-card-story .post-card-type-badge-bottom {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    opacity: 0.9;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 
 /* === DAY VIEW === */

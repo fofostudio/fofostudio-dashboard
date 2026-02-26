@@ -216,7 +216,30 @@ function renderPostCard(post, currentDateStr) {
     }).replace(/"/g, '&quot;');
     
     const typeBadge = getTypeBadge(post.type);
+    const isStory = post.type === 'story';
     
+    // Para historias: imagen de fondo completo sin textos, solo hora
+    if (isStory && post.image_url) {
+        return `
+            <div class="post-card post-card-story ${post.type}" 
+                 draggable="true"
+                 data-post-id="${post.id}"
+                 data-post-data='${postData}'
+                 ondragstart="handleDragStart(event)"
+                 ondragend="handleDragEnd(event)"
+                 onclick="showPostDetail('${post.id}')"
+                 style="background-image: url('${post.image_url}'); background-size: cover; background-position: center;">
+                <div class="post-card-story-overlay">
+                    <div class="post-card-time-story">${post.time || '—'}</div>
+                </div>
+                <div class="post-card-type-badge-bottom ${post.type}">
+                    ${typeBadge.icon}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Para otros tipos: diseño normal con badge abajo
     return `
         <div class="post-card ${post.type}" 
              draggable="true"
@@ -225,9 +248,6 @@ function renderPostCard(post, currentDateStr) {
              ondragstart="handleDragStart(event)"
              ondragend="handleDragEnd(event)"
              onclick="showPostDetail('${post.id}')">
-            <div class="post-card-type-badge ${post.type}">
-                ${typeBadge.icon} ${typeBadge.label}
-            </div>
             ${post.image_url ? `
                 <div class="post-card-thumbnail">
                     <img src="${post.image_url}" alt="${post.title}" draggable="false"
@@ -241,7 +261,12 @@ function renderPostCard(post, currentDateStr) {
             <div class="post-card-info">
                 <div class="post-card-time">${post.time || '—'}</div>
                 <div class="post-card-title">${post.title.substring(0, 40)}${post.title.length > 40 ? '...' : ''}</div>
-                <div class="post-card-status ${post.status}"></div>
+                <div class="post-card-footer">
+                    <div class="post-card-status ${post.status}"></div>
+                    <div class="post-card-type-badge-bottom ${post.type}">
+                        ${typeBadge.icon}
+                    </div>
+                </div>
             </div>
         </div>
     `;
