@@ -239,6 +239,9 @@ function showDayPosts(dateStr) {
     const dayPosts = calendarData.filter(post => post.date === dateStr);
     if (dayPosts.length === 0) return;
     
+    // Sort by time (earliest first)
+    dayPosts.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    
     const date = new Date(dateStr);
     const formattedDate = date.toLocaleDateString('es-ES', { 
         weekday: 'long', 

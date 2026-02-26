@@ -136,6 +136,9 @@ function renderWeekView() {
         const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         const dayPosts = calendarData.filter(post => post.date === dateStr);
         
+        // Sort by time (earliest first)
+        dayPosts.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+        
         const isToday = isSameDay(date, new Date());
         
         weekHTML += `
