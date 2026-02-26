@@ -65,6 +65,7 @@ body::before {
     justify-content: space-between;
     align-items: center;
     gap: 2rem;
+    flex-wrap: wrap;
 }
 
 .logo {
@@ -93,6 +94,95 @@ body::before {
     font-weight: 500;
     letter-spacing: 1px;
     text-transform: uppercase;
+}
+
+/* Platform Logos */
+.platform-logos {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+}
+
+.platform-logo {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    cursor: help;
+    position: relative;
+}
+
+.platform-logo:hover {
+    color: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+.platform-logo svg {
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 2px 8px rgba(255, 117, 25, 0.3));
+}
+
+/* Mock Stats Banner (TEMPORAL) */
+.mock-stats-banner {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-glass);
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+}
+
+.mock-stat {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.mock-stat:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 117, 25, 0.3);
+    transform: translateY(-2px);
+}
+
+.mock-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.5px;
+}
+
+.mock-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+.mock-stat.success .mock-stat-value {
+    color: var(--success);
+}
+
+.mock-stat.warning .mock-stat-value {
+    color: var(--warning);
+}
+
+.mock-stat.danger .mock-stat-value {
+    color: var(--danger);
 }
 
 .header-stats {
