@@ -326,11 +326,15 @@ async function showPostDetail(postId) {
                     ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}" id="preview-image">` : `<div class="post-preview-placeholder" id="preview-image">📸<br>Sin imagen</div>`}
                 </div>
                 
-                <button class="btn btn-regenerate" onclick="regenerateImage()" style="width: 100%; margin-top: 0.75rem; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; padding: 0.75rem; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-                    <span>🎨 Regenerar Pieza</span>
+                <button class="btn btn-regenerate" onclick="regenerateImage(event)" style="width: 100%; margin-top: 0.75rem; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; padding: 0.75rem; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                    <span>🎨 Regenerar Pieza con IA</span>
                 </button>
                 
-                <div style="font-size: 0.8rem; color: var(--text-dim);">
+                <button class="btn btn-secondary" onclick="changeImageManually()" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem; border-radius: 8px; font-weight: 600;">
+                    <span>🖼️ Cambiar Imagen Manualmente</span>
+                </button>
+                
+                <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;">
                     <strong>Plataforma:</strong> ${post.platform}<br>
                     <strong>Fecha:</strong> ${post.date} ${post.time}<br>
                     <strong>Estado:</strong> <span class="post-status-badge ${post.status}">${post.status}</span>
@@ -1113,6 +1117,68 @@ async function regenerateImage(event) {
             } else {
                 previewImage.innerHTML = '📸<br>Sin imagen';
             }
+        }
+    }
+}
+
+// === CHANGE IMAGE MANUALLY ===
+async function changeImageManually() {
+    if (!selectedPost) return;
+    
+    const newImageUrl = prompt('Ingresa la URL de la nueva imagen:\n\n(Puede ser desde Google Drive, Catbox, o cualquier URL pública)', selectedPost.image_url || '');
+    
+    if (!newImageUrl) return; // User cancelled
+    
+    try {
+        // Show loading
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage) {
+            const originalPreview = previewImage.innerHTML;
+            previewImage.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
+                    <div style="font-size: 3rem;">⏳</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">Actualizando imagen...</div>
+                </div>
+            `;
+        }
+        
+        const response = await fetchWithAuth(`${API_BASE}/update-post-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                post_id: selectedPost.id,
+                image_url: newImageUrl
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al actualizar imagen');
+        }
+        
+        // Update preview
+        if (previewImage) {
+            previewImage.innerHTML = `<img src="${newImageUrl}" alt="${selectedPost.title}">`;
+        }
+        
+        // Update selectedPost
+        selectedPost.image_url = newImageUrl;
+        
+        alert('✅ Imagen actualizada exitosamente!');
+        
+        // Reload calendar
+        await loadCalendar();
+        addActivityLogItem(`🖼️ Imagen cambiada: ${selectedPost.title.substring(0, 40)}...`);
+        
+    } catch (error) {
+        console.error('Error changing image:', error);
+        alert('❌ Error al cambiar imagen: ' + error.message);
+        
+        // Restore original preview
+        const previewImage = document.getElementById('preview-image');
+        if (previewImage && selectedPost.image_url) {
+            previewImage.innerHTML = `<img src="${selectedPost.image_url}" alt="${selectedPost.title}">`;
         }
     }
 }
