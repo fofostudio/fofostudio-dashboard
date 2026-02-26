@@ -96,11 +96,11 @@ exports.handler = async (event, context) => {
     const colIndices = {
       date: findColumnIndex(header, ['fecha', 'date', 'día', 'dia']),
       time: findColumnIndex(header, ['hora', 'time', 'horario']),
-      title: findColumnIndex(header, ['mensaje completo', 'mensaje', 'título', 'titulo', 'title', 'texto', 'copy']),
-      description: findColumnIndex(header, ['descripción', 'descripcion', 'description', 'caption']),
+      message: findColumnIndex(header, ['mensaje completo', 'mensaje', 'copy', 'texto']),
       type: findColumnIndex(header, ['tipo', 'type', 'formato', 'format']),
       platform: findColumnIndex(header, ['plataforma', 'plataformas', 'platform', 'red']),
-      image: findColumnIndex(header, ['url imagen', 'imagen', 'image', 'url', 'asset', 'pieza'])
+      image: findColumnIndex(header, ['url imagen', 'imagen', 'image', 'url', 'asset', 'pieza']),
+      hashtags: findColumnIndex(header, ['hashtags', 'tags'])
     };
 
     // Get the specific row (rowIndex is 1-based, but rows array is 0-based)
@@ -135,14 +135,24 @@ exports.handler = async (event, context) => {
     let time = colIndices.time >= 0 ? (row[colIndices.time] || '') : '';
     time = normalizeTime(time);
     
-    const title = colIndices.title >= 0 ? (row[colIndices.title] || '') : '';
-    const description = colIndices.description >= 0 ? (row[colIndices.description] || '') : '';
+    // Get message (copy completo)
+    const message = colIndices.message >= 0 ? (row[colIndices.message] || '') : '';
+    
+    // Generate title from type + preview of message
+    const typeLabel = postType === 'feed' ? '📱' : postType === 'story' ? '📲' : postType === 'reel' ? '🎬' : '🎠';
+    const messagePreview = message.length > 50 ? message.substring(0, 50) + '...' : message;
+    const title = `${typeLabel} ${messagePreview}`;
     
     // Parse platform
     let platform = colIndices.platform >= 0 ? (row[colIndices.platform] || 'both') : 'both';
     platform = normalizePlatform(platform);
     
-    const imageUrl = colIndices.image >= 0 ? (row[colIndices.image] || '') : '';
+    // Parse and convert Google Drive URL
+    let imageUrl = colIndices.image >= 0 ? (row[colIndices.image] || '') : '';
+    imageUrl = convertDriveUrl(imageUrl);
+    
+    // Get hashtags
+    const hashtags = colIndices.hashtags >= 0 ? (row[colIndices.hashtags] || '') : '';
 
     const post = {
       id: postId,
@@ -151,7 +161,8 @@ exports.handler = async (event, context) => {
       date: dateStr,
       time: time,
       title: title,
-      description: description,
+      description: message,
+      hashtags: hashtags,
       type: postType,
       platform: platform.toLowerCase(),
       image_url: imageUrl,
@@ -216,6 +227,24 @@ function normalizePlatform(platformStr) {
   if (lower.includes('instagram') || lower.includes('ig')) return 'instagram';
   
   return 'both';
+}
+
+function convertDriveUrl(url) {
+  if (!url) return '';
+  
+  // Convert Google Drive URLs from /file/d/{id}/view to direct view format
+  // Input: https://drive.google.com/file/d/1QqcBVNQKjb8Vow2SXO3MnFocpwOJBS2B/view?usp=drivesdk
+  // Output: https://drive.google.com/uc?export=view&id=1QqcBVNQKjb8Vow2SXO3MnFocpwOJBS2B
+  
+  const match = url.match(/\/file\/d\/([^\/]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+  
+  // If already in uc format, return as-is
+  if (url.includes('/uc?')) return url;
+  
+  return url;
 }
 
 function determineStatus(dateStr, timeStr) {
