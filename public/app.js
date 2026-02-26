@@ -609,6 +609,8 @@ async function syncCalendar() {
 // === ACTIVITY LOG ===
 function updateActivityLog() {
     const log = document.getElementById('activity-log');
+    if (!log) return; // Protect against null - element doesn't exist in current layout
+    
     const items = [
         { text: '✅ Dashboard cargado', time: 'Hace 1 min' },
         { text: '📊 Métricas actualizadas', time: 'Hace 5 min' },
@@ -765,6 +767,23 @@ async function loadBoveda() {
     try {
         const filter = document.getElementById('boveda-filter').value;
         const response = await fetchWithAuth(`${API_BASE}/assets?filter=${filter}`);
+        
+        // Handle auth errors
+        if (response.status === 401) {
+            console.warn('Assets endpoint requires authentication');
+            const container = document.getElementById('assets-grid');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                        <div style="margin-bottom: 1rem;">Autenticación requerida</div>
+                        <div style="font-size: 0.9em; opacity: 0.7;">Inicia sesión con Google para acceder a la bóveda de contenido</div>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
         const data = await response.json();
         renderAssets(data.assets || []);
     } catch (error) {
