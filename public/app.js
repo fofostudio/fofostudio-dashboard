@@ -454,8 +454,12 @@ async function showPostDetail(postId) {
                 </div>
                 
                 <div class="post-preview-image ${post.type}">
-                    ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}">` : `<div class="post-preview-placeholder">📸<br>Sin imagen</div>`}
+                    ${post.image_url ? `<img src="${post.image_url}" alt="${post.title}" id="preview-image">` : `<div class="post-preview-placeholder" id="preview-image">📸<br>Sin imagen</div>`}
                 </div>
+                
+                <button class="btn btn-regenerate" onclick="regenerateImage()" style="width: 100%; margin-top: 0.75rem; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; padding: 0.75rem; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                    <span>🎨 Regenerar Pieza</span>
+                </button>
                 
                 <div style="font-size: 0.8rem; color: var(--text-dim);">
                     <strong>Plataforma:</strong> ${post.platform}<br>
@@ -934,3 +938,79 @@ document.addEventListener('DOMContentLoaded', () => {
         bovedaFilter.addEventListener('change', loadBoveda);
     }
 });
+
+async function regenerateImage() {
+    if (!selectedPost) return;
+    
+    if (!confirm(`¿Regenerar pieza gráfica para "${selectedPost.title}"?\n\nEsto tomará 30-60 segundos.`)) return;
+    
+    try {
+        // Show loading state
+        const regenerateBtn = event.target.closest('.btn-regenerate');
+        const originalHTML = regenerateBtn.innerHTML;
+        regenerateBtn.innerHTML = '<span>⏳ Generando...</span>';
+        regenerateBtn.disabled = true;
+        
+        // Update preview with loading spinner
+        const previewImage = document.getElementById('preview-image');
+        const originalPreview = previewImage.innerHTML;
+        previewImage.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem;">
+                <div style="font-size: 3rem;">⏳</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">Generando con IA...</div>
+            </div>
+        `;
+        
+        const response = await fetchWithAuth(`${API_BASE}/regenerate-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                post_id: selectedPost.id,
+                sheet_name: selectedPost.sheet_name,
+                row_index: selectedPost.row_index,
+                description: selectedPost.description,
+                type: selectedPost.type,
+                platform: selectedPost.platform
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al regenerar imagen');
+        }
+        
+        // Update preview with new image
+        previewImage.innerHTML = `<img src="${result.direct_url}" alt="Nueva pieza generada">`;
+        
+        // Update selectedPost
+        selectedPost.image_url = result.direct_url;
+        
+        // Success notification
+        alert(`✅ ¡Pieza regenerada exitosamente!\n\n📁 Guardada en Google Drive\n📊 Actualizada en Sheets`);
+        
+        // Reload calendar to show updated image
+        await loadCalendar();
+        addActivityLogItem(`🎨 Pieza regenerada: ${selectedPost.title.substring(0, 40)}...`);
+        
+        // Restore button
+        regenerateBtn.innerHTML = originalHTML;
+        regenerateBtn.disabled = false;
+        
+    } catch (error) {
+        console.error('Error regenerating image:', error);
+        alert('❌ Error al regenerar: ' + error.message);
+        
+        // Restore button and preview
+        const regenerateBtn = event.target.closest('.btn-regenerate');
+        regenerateBtn.innerHTML = '<span>🎨 Regenerar Pieza</span>';
+        regenerateBtn.disabled = false;
+        
+        // Restore original preview if it exists
+        if (selectedPost.image_url) {
+            document.getElementById('preview-image').innerHTML = `<img src="${selectedPost.image_url}" alt="${selectedPost.title}">`;
+        } else {
+            document.getElementById('preview-image').innerHTML = '📸<br>Sin imagen';
+        }
+    }
+}
