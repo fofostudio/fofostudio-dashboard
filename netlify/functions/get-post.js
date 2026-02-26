@@ -232,17 +232,23 @@ function normalizePlatform(platformStr) {
 function convertDriveUrl(url) {
   if (!url) return '';
   
-  // Convert Google Drive URLs from /file/d/{id}/view to direct view format
+  // Convert Google Drive URLs to Google's CDN format (works for images AND videos as thumbnails)
   // Input: https://drive.google.com/file/d/1QqcBVNQKjb8Vow2SXO3MnFocpwOJBS2B/view?usp=drivesdk
-  // Output: https://drive.google.com/uc?export=view&id=1QqcBVNQKjb8Vow2SXO3MnFocpwOJBS2B
+  // Output: https://lh3.googleusercontent.com/d/1QqcBVNQKjb8Vow2SXO3MnFocpwOJBS2B
   
-  const match = url.match(/\/file\/d\/([^\/]+)/);
+  const match = url.match(/\/file\/d\/([^\/\?]+)/);
   if (match && match[1]) {
-    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return `https://lh3.googleusercontent.com/d/${match[1]}`;
   }
   
-  // If already in uc format, return as-is
-  if (url.includes('/uc?')) return url;
+  // Also handle /uc?id= format
+  const ucMatch = url.match(/[?&]id=([^&]+)/);
+  if (ucMatch && ucMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${ucMatch[1]}`;
+  }
+  
+  // If already in lh3 format, return as-is
+  if (url.includes('lh3.googleusercontent.com')) return url;
   
   return url;
 }
