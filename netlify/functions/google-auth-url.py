@@ -1,3 +1,4 @@
+"""Generate Google OAuth URL"""
 import json
 import os
 from urllib.parse import urlencode
@@ -5,6 +6,7 @@ from urllib.parse import urlencode
 def handler(event, context):
     """Generate Google OAuth URL"""
     
+    # CORS headers
     headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
@@ -12,8 +14,13 @@ def handler(event, context):
         "Access-Control-Allow-Methods": "GET, OPTIONS"
     }
     
+    # Handle preflight
     if event.get("httpMethod") == "OPTIONS":
-        return {"statusCode": 200, "headers": headers, "body": ""}
+        return {
+            "statusCode": 200,
+            "headers": headers,
+            "body": ""
+        }
     
     try:
         client_id = os.environ.get("GOOGLE_CLIENT_ID")
@@ -24,7 +31,7 @@ def handler(event, context):
                 "statusCode": 500,
                 "headers": headers,
                 "body": json.dumps({
-                    "error": "Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_REDIRECT_URI"
+                    "error": "Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_REDIRECT_URI in Netlify Environment Variables"
                 })
             }
         

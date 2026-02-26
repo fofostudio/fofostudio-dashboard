@@ -22,7 +22,26 @@ class GoogleAuth {
     
     async login() {
         try {
-            const response = await fetch(`${API_BASE}/google-auth-url`);
+            const url = `${API_BASE}/google-auth-url`;
+            console.log('Requesting OAuth URL from:', url);
+            
+            const response = await fetch(url);
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers.get('content-type'));
+            
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('Response error:', text);
+                throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                throw new Error('Server returned HTML instead of JSON. Check Netlify Functions logs.');
+            }
+            
             const data = await response.json();
             
             if (data.error) {
@@ -33,7 +52,7 @@ class GoogleAuth {
             window.location.href = data.url;
         } catch (error) {
             console.error('Login error:', error);
-            alert('Error al iniciar sesión con Google: ' + error.message);
+            alert('Error al iniciar sesión con Google:\n\n' + error.message + '\n\nRevisa la consola (F12) para más detalles.');
         }
     }
     
