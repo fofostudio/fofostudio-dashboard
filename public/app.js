@@ -72,7 +72,7 @@ async function initDashboard() {
         loadRecommendations()
     ]);
     updateActivityLog();
-    updateCurrentMonth();
+    updateCalendarHeader();
 }
 
 // === ADS OVERVIEW ===
@@ -229,142 +229,9 @@ async function loadCalendar() {
     }
 }
 
-function renderCalendar() {
-    if (currentView === 'grid') {
-        renderCalendarGrid();
-    } else {
-        renderCalendarList();
-    }
-}
 
-function renderCalendarGrid() {
-    const container = document.getElementById('calendar-days');
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-    
-    // Previous month padding
-    const prevMonthDays = new Date(year, month, 0).getDate();
-    const prevMonthStart = prevMonthDays - startingDayOfWeek + 1;
-    
-    let daysHTML = '';
-    
-    // Previous month days
-    for (let i = 0; i < startingDayOfWeek; i++) {
-        const day = prevMonthStart + i;
-        daysHTML += `<div class="calendar-day other-month"><div class="day-number">${day}</div></div>`;
-    }
-    
-    // Current month days
-    const today = new Date();
-    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayPosts = calendarData.filter(post => post.date === dateStr);
-        const isToday = isCurrentMonth && day === today.getDate();
-        
-        const postsHTML = dayPosts.map(post => 
-            `<div class="post-dot ${post.type} ${post.status}" title="${post.title}"></div>`
-        ).join('');
-        
-        daysHTML += `
-            <div class="calendar-day ${isToday ? 'today' : ''}" onclick="showDayPosts('${dateStr}')">
-                <div class="day-number">${day}</div>
-                <div class="day-posts">${postsHTML}</div>
-            </div>
-        `;
-    }
-    
-    // Next month padding
-    const totalCells = daysHTML.split('calendar-day').length - 1;
-    const nextMonthDays = 42 - totalCells; // 6 weeks
-    for (let i = 1; i <= nextMonthDays; i++) {
-        daysHTML += `<div class="calendar-day other-month"><div class="day-number">${i}</div></div>`;
-    }
-    
-    container.innerHTML = daysHTML;
-}
 
-function renderCalendarList() {
-    const container = document.getElementById('calendar-list');
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    const typeIcons = {
-        feed: '📱',
-        story: '📲',
-        reel: '🎬',
-        carousel: '🎠'
-    };
-    
-    const typeLabels = {
-        feed: 'Feed',
-        story: 'Historia',
-        reel: 'Reel',
-        carousel: 'Carrusel'
-    };
-    
-    const platformLabels = {
-        both: 'FB + IG',
-        facebook: 'Facebook',
-        instagram: 'Instagram'
-    };
-    
-    let listHTML = '';
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayPosts = calendarData.filter(post => post.date === dateStr);
-        
-        if (dayPosts.length === 0) continue;
-        
-        const date = new Date(year, month, day);
-        const weekday = date.toLocaleDateString('es-ES', { weekday: 'long' });
-        
-        const postsHTML = dayPosts.map(post => `
-            <div class="post-item ${post.type}" onclick="showPostDetail('${post.id}')">
-                <div class="post-content">
-                    <div class="post-title">${typeIcons[post.type] || ''} ${post.title}</div>
-                    <div class="post-meta">${post.time} ${typeLabels[post.type]} • ${platformLabels[post.platform] || post.platform}</div>
-                </div>
-                <div class="post-status-badge ${post.status}">${post.status}</div>
-            </div>
-        `).join('');
-        
-        listHTML += `
-            <div class="day-group">
-                <div class="day-group-header">
-                    <div class="day-group-date">${day}</div>
-                    <div class="day-group-weekday">${weekday}</div>
-                </div>
-                <div class="post-list">${postsHTML}</div>
-            </div>
-        `;
-    }
-    
-    container.innerHTML = listHTML || '<div class="activity-item">No hay posts programados este mes</div>';
-}
 
-function switchView(view) {
-    currentView = view;
-    
-    // Update buttons
-    document.querySelectorAll('.btn-toggle').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.view === view);
-    });
-    
-    // Toggle views
-    document.getElementById('calendar-grid').classList.toggle('hidden', view !== 'grid');
-    document.getElementById('calendar-list').classList.toggle('hidden', view !== 'list');
-    
-    renderCalendar();
-}
 
 function showDayPosts(dateStr) {
     const dayPosts = calendarData.filter(post => post.date === dateStr);
@@ -659,24 +526,8 @@ function closeModal() {
 }
 
 // === NAVIGATION ===
-function updateCurrentMonth() {
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const monthStr = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-    document.getElementById('current-month').textContent = monthStr;
-}
 
-async function prevMonth() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    updateCurrentMonth();
-    await loadCalendar();
-}
 
-async function nextMonth() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    updateCurrentMonth();
-    await loadCalendar();
-}
 
 // === QUICK ACTIONS ===
 function createPost() {
