@@ -520,7 +520,27 @@ async function showPostDetail(postId) {
                 </div>
             </div>
         `;
-        document.querySelector('.modal-footer').style.display = 'flex';
+        
+        // Update modal footer with dynamic buttons
+        const modalFooter = document.querySelector('.modal-footer');
+        const isPublished = post.status === 'published';
+        
+        modalFooter.innerHTML = `
+            <button class="btn btn-secondary" onclick="closeModal()">
+                <span>← Volver</span>
+            </button>
+            <div style="display: flex; gap: 0.75rem; margin-left: auto;">
+                ${!isPublished ? `
+                    <button class="btn btn-success" onclick="publishNow()" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                        <span>🚀 Publicar Ya</span>
+                    </button>
+                ` : ''}
+                <button class="btn btn-danger" onclick="deletePost()">Eliminar</button>
+                <button class="btn btn-primary" onclick="savePost()">Guardar</button>
+            </div>
+        `;
+        
+        modalFooter.style.display = 'flex';
         document.getElementById('post-modal').classList.remove('hidden');
     } catch (error) {
         console.error('Error loading post detail:', error);
@@ -571,6 +591,55 @@ async function deletePost() {
     } catch (error) {
         console.error('Error deleting post:', error);
         alert('Error al eliminar el post');
+    }
+}
+
+async function publishNow() {
+    if (!selectedPost) return;
+    
+    if (!confirm(`¿Publicar "${selectedPost.title}" AHORA en ${selectedPost.platform}?`)) return;
+    
+    try {
+        // Show loading state
+        const publishBtn = event.target.closest('.btn');
+        const originalText = publishBtn.innerHTML;
+        publishBtn.innerHTML = '<span>⏳ Publicando...</span>';
+        publishBtn.disabled = true;
+        
+        const response = await fetchWithAuth(`${API_BASE}/publish-now`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                post_id: selectedPost.id,
+                sheet_name: selectedPost.sheet_name,
+                row_index: selectedPost.row_index,
+                description: selectedPost.description,
+                hashtags: selectedPost.hashtags || '',
+                image_url: selectedPost.image_url,
+                platform: selectedPost.platform,
+                type: selectedPost.type
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al publicar');
+        }
+        
+        closeModal();
+        await loadCalendar();
+        addActivityLogItem(`🚀 Post publicado: ${selectedPost.title.substring(0, 50)}...`);
+        alert('✅ Post publicado exitosamente!\n\n' + (result.message || 'Publicado en ' + selectedPost.platform));
+        
+    } catch (error) {
+        console.error('Error publishing post:', error);
+        alert('❌ Error al publicar: ' + error.message);
+        
+        // Restore button
+        const publishBtn = event.target.closest('.btn');
+        publishBtn.innerHTML = '<span>🚀 Publicar Ya</span>';
+        publishBtn.disabled = false;
     }
 }
 
